@@ -17,7 +17,7 @@
         </li>
 
         <li>
-            <a href="#" class="nav-link">
+            <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
                 <i class="fa fa-box me-2"></i> Products
             </a>
         </li>
