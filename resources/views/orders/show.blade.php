@@ -41,7 +41,7 @@
                 <div class="card-body p-4">
                     <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
                         <div>
-                            <div class="text-muted small mb-1">Order Summary</div>
+                            <div class="text-muted small mb-1">{{ $isSupplierView ? 'Received Order Summary' : 'Order Summary' }}</div>
                             <h2 class="h4 mb-2">{{ $order->order_number }}</h2>
                             <span class="badge {{ $statusClasses[$order->status] ?? 'text-bg-secondary' }}">
                                 {{ ucfirst($order->status) }}
@@ -49,8 +49,8 @@
                         </div>
 
                         <div class="text-md-end">
-                            <div class="text-muted small mb-1">Grand Total</div>
-                            <div class="h3 mb-0">${{ number_format((float) $order->grand_total, 2) }}</div>
+                            <div class="text-muted small mb-1">{{ $isSupplierView ? 'Your Item Total' : 'Grand Total' }}</div>
+                            <div class="h3 mb-0">${{ number_format($isSupplierView ? $visibleSubtotal : (float) $order->grand_total, 2) }}</div>
                         </div>
                     </div>
 
@@ -67,7 +67,7 @@
         <div class="col-12 col-xl-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body p-4">
-                    <div class="text-muted small mb-1">Customer Info</div>
+                    <div class="text-muted small mb-1">Buyer Info</div>
                     <h2 class="h5 mb-2">{{ $order->customer?->name ?? 'Guest Customer' }}</h2>
                     <div class="text-muted">{{ $order->customer?->email ?? 'No email available' }}</div>
                 </div>
@@ -106,19 +106,21 @@
                 <tfoot class="table-light">
                     <tr>
                         <th colspan="3" class="text-end border-bottom-0">Subtotal</th>
-                        <th class="text-end border-bottom-0">${{ number_format((float) $order->subtotal, 2) }}</th>
+                        <th class="text-end border-bottom-0">${{ number_format($isSupplierView ? $visibleSubtotal : (float) $order->subtotal, 2) }}</th>
                     </tr>
+                    @unless ($isSupplierView)
+                        <tr>
+                            <th colspan="3" class="text-end border-bottom-0">Discount</th>
+                            <th class="text-end border-bottom-0">${{ number_format((float) $order->discount, 2) }}</th>
+                        </tr>
+                        <tr>
+                            <th colspan="3" class="text-end border-bottom-0">Tax</th>
+                            <th class="text-end border-bottom-0">${{ number_format((float) $order->tax, 2) }}</th>
+                        </tr>
+                    @endunless
                     <tr>
-                        <th colspan="3" class="text-end border-bottom-0">Discount</th>
-                        <th class="text-end border-bottom-0">${{ number_format((float) $order->discount, 2) }}</th>
-                    </tr>
-                    <tr>
-                        <th colspan="3" class="text-end border-bottom-0">Tax</th>
-                        <th class="text-end border-bottom-0">${{ number_format((float) $order->tax, 2) }}</th>
-                    </tr>
-                    <tr>
-                        <th colspan="3" class="text-end border-bottom-0">Grand Total</th>
-                        <th class="text-end border-bottom-0">${{ number_format((float) $order->grand_total, 2) }}</th>
+                        <th colspan="3" class="text-end border-bottom-0">{{ $isSupplierView ? 'Your Item Total' : 'Grand Total' }}</th>
+                        <th class="text-end border-bottom-0">${{ number_format($isSupplierView ? $visibleSubtotal : (float) $order->grand_total, 2) }}</th>
                     </tr>
                 </tfoot>
             </table>

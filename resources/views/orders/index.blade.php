@@ -14,13 +14,17 @@
 @section('content')
     <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
         <div>
-            <h1 class="h3 mb-1">Orders</h1>
-            <p class="text-muted mb-0">Track B2B order placement, totals, customers, and fulfillment status.</p>
+            <h1 class="h3 mb-1">{{ $isSupplierView ? 'Received Orders' : 'Orders' }}</h1>
+            <p class="text-muted mb-0">
+                {{ $isSupplierView ? 'Review orders that include your products and see only your relevant order lines.' : 'Track your order placement, totals, and fulfillment status.' }}
+            </p>
         </div>
 
-        <a href="{{ route('orders.create') }}" class="btn btn-primary">
-            <i class="fa fa-plus me-2"></i>Create Order
-        </a>
+        @if (! $isSupplierView)
+            <a href="{{ route('orders.create') }}" class="btn btn-primary">
+                <i class="fa fa-plus me-2"></i>Create Order
+            </a>
+        @endif
     </div>
 
     @if (session('success'))
@@ -67,6 +71,9 @@
                         <th>ID</th>
                         <th>Order Number</th>
                         <th>Customer</th>
+                        @if ($isSupplierView)
+                            <th>Relevant Items</th>
+                        @endif
                         <th class="text-end">Total</th>
                         <th>Status</th>
                         <th>Date</th>
@@ -79,6 +86,9 @@
                             <td class="text-muted">#{{ $order->id }}</td>
                             <td class="fw-semibold">{{ $order->order_number }}</td>
                             <td>{{ $order->customer?->name ?? 'Guest Customer' }}</td>
+                            @if ($isSupplierView)
+                                <td>{{ $order->items->filter(fn ($item) => $item->product?->supplier_id === auth()->user()?->supplier?->id)->count() }}</td>
+                            @endif
                             <td class="text-end fw-semibold">${{ number_format((float) $order->grand_total, 2) }}</td>
                             <td>
                                 <span class="badge {{ $statusClasses[$order->status] ?? 'text-bg-secondary' }}">
@@ -94,7 +104,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-5">
+                            <td colspan="{{ $isSupplierView ? 8 : 7 }}" class="text-center text-muted py-5">
                                 No orders found.
                             </td>
                         </tr>

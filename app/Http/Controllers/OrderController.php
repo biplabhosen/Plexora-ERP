@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -15,31 +16,57 @@ class OrderController extends Controller
 {
     public function index(Request $request): View
     {
+        $user = $request->user();
         $status = $request->string('status')->toString();
+        $isSupplier = $user?->hasRole('supplier') ?? false;
+        $supplier = $isSupplier ? $user?->supplier : null;
 
-        $orders = Order::query()
-            ->with('customer')
+        $query = Order::query()
+            ->with([
+                'customer',
+                'items.product',
+            ])
             ->status($status)
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+            ->latest();
+
+        if ($isSupplier) {
+            abort_if($supplier?->status !== 'approved', 403);
+
+            $query->whereHas('items.product', function (Builder $builder) use ($supplier): void {
+                $builder->where('supplier_id', $supplier->id);
+            });
+        } elseif (! $user?->hasRole('admin')) {
+            $query->where('customer_id', $user?->id);
+        }
+
+        $orders = $query->paginate(10)->withQueryString();
 
         return view('orders.index', [
             'orders' => $orders,
             'status' => $status,
+            'isSupplierView' => $isSupplier,
         ]);
     }
 
     public function create(): View
     {
+        $user = auth()->user();
+
+        abort_if($user?->hasRole('supplier'), 403, 'Suppliers cannot place buyer orders.');
+
         return view('orders.create', [
             'products' => Product::query()->active()->orderBy('name')->get(),
-            'customers' => User::query()->orderBy('name')->get(),
+            'customers' => $user?->hasRole('admin')
+                ? User::query()->orderBy('name')->get()
+                : User::query()->whereKey($user?->id)->get(),
+            'canChooseCustomer' => $user?->hasRole('admin') ?? false,
         ]);
     }
 
     public function store(StoreOrderRequest $request, OrderService $service): RedirectResponse
     {
+        abort_if($request->user()?->hasRole('supplier'), 403, 'Suppliers cannot place buyer orders.');
+
         $order = $service->place(
             $request->validated(),
             auth()->user()
@@ -52,10 +79,38 @@ class OrderController extends Controller
 
     public function show(Order $order): View
     {
-        $order->load(['items.product', 'customer']);
+        $user = auth()->user();
+        $isSupplier = $user?->hasRole('supplier') ?? false;
+
+        if ($isSupplier) {
+            $supplier = $user?->supplier;
+            abort_if($supplier?->status !== 'approved', 403);
+
+            $visibleItems = $order->items()
+                ->with('product')
+                ->whereHas('product', function (Builder $builder) use ($supplier): void {
+                    $builder->where('supplier_id', $supplier->id);
+                })
+                ->get();
+
+            abort_if($visibleItems->isEmpty(), 403);
+
+            $order->load('customer');
+            $order->setRelation('items', $visibleItems);
+        } else {
+            if (! $user?->hasRole('admin')) {
+                abort_if($order->customer_id !== $user?->id, 403);
+            }
+
+            $order->load(['items.product', 'customer']);
+        }
+
+        $visibleSubtotal = $order->items->sum(fn ($item) => (float) $item->line_total);
 
         return view('orders.show', [
             'order' => $order,
+            'isSupplierView' => $isSupplier,
+            'visibleSubtotal' => $visibleSubtotal,
         ]);
     }
 }

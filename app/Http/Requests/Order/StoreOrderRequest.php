@@ -13,8 +13,12 @@ class StoreOrderRequest extends FormRequest
 
     public function rules(): array
     {
+        $isSupplier = $this->user()?->hasRole('supplier') ?? false;
+
         return [
-            'customer_id' => ['required', 'exists:users,id'],
+            'customer_id' => $isSupplier
+                ? ['prohibited']
+                : ['nullable', 'exists:users,id'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.product_id' => ['required', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1'],
