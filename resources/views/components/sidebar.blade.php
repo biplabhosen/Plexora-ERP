@@ -23,7 +23,7 @@
         </li>
 
         <li>
-            <a href="#" class="nav-link">
+            <a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
                 <i class="fa fa-shopping-cart me-2"></i> Orders
             </a>
         </li>

@@ -15,11 +15,9 @@ return new class extends Migration
             $table->id();
             $table->foreignId('order_id')->constrained()->cascadeOnDelete();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
-            $table->integer('quantity');
             $table->decimal('price', 10, 2);
-            $table->decimal('subtotal', 10, 2);
-            $table->text('shipping_address')->nullable();
-$table->string('phone')->nullable();
+            $table->integer('quantity');
+            $table->decimal('line_total', 10, 2);
             $table->timestamps();
         });
     }
