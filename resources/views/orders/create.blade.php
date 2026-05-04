@@ -16,7 +16,11 @@
 
     @if ($errors->any())
         <div class="alert alert-danger">
-            Please review the highlighted order details and try again.
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
     @endif
 

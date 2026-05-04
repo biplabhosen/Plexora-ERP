@@ -38,9 +38,12 @@ class OrderController extends Controller
         ]);
     }
 
-    public function store(StoreOrderRequest $request, OrderService $orderService): RedirectResponse
+    public function store(StoreOrderRequest $request, OrderService $service): RedirectResponse
     {
-        $order = $orderService->place($request->validated(), $request->user());
+        $order = $service->place(
+            $request->validated(),
+            auth()->user()
+        );
 
         return redirect()
             ->route('orders.show', $order)

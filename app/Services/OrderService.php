@@ -12,6 +12,10 @@ use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    private const STATUS_PENDING = 'pending';
+
+    private const TAX_CENTS = 0;
+
     public function __construct(
         private readonly InventoryService $inventoryService
     ) {}
@@ -19,42 +23,34 @@ class OrderService
     public function place(array $data, User $user): Order
     {
         return DB::transaction(function () use ($data, $user): Order {
-            $products = $this->loadProducts($data['items']);
+            $items = $this->normalizeItems($data['items']);
+            $products = $this->loadProducts($items);
 
-            $this->validateStock($data['items'], $products);
+            $this->validateItems($items, $products);
 
-            $subtotal = $this->calculateSubtotal($data['items'], $products);
-            $lineDiscount = $this->calculateLineDiscount($data['items'], $products);
-            $orderDiscount = (float) ($data['discount'] ?? 0);
-            $discount = $lineDiscount + $orderDiscount;
-            $grandTotal = max(0, $subtotal - $discount);
+            $pricedItems = $this->priceItems($items, $products);
+            $totals = $this->calculateTotals($pricedItems);
 
-            $order = Order::create([
+            $order = Order::query()->create([
                 'customer_id' => $data['customer_id'] ?? $user->id,
                 'order_number' => $this->generateOrderNumber(),
-                'subtotal' => $subtotal,
-                'discount' => $discount,
-                'tax' => 0,
-                'grand_total' => $grandTotal,
-                'status' => 'pending',
+                'subtotal' => $this->formatCents($totals['subtotal_cents']),
+                'discount' => $this->formatCents($totals['discount_cents']),
+                'tax' => $this->formatCents(self::TAX_CENTS),
+                'grand_total' => $this->formatCents($totals['grand_total_cents']),
+                'status' => self::STATUS_PENDING,
                 'notes' => $data['notes'] ?? null,
             ]);
 
-            foreach ($data['items'] as $item) {
-                $product = $products->get((int) $item['product_id']);
-                $quantity = (int) $item['quantity'];
-                $lineSubtotal = (float) $product->price * $quantity;
-                $itemDiscount = min((float) ($item['discount'] ?? 0), $lineSubtotal);
-                $lineTotal = $lineSubtotal - $itemDiscount;
-
+            foreach ($pricedItems as $item) {
                 $order->items()->create([
-                    'product_id' => $product->id,
-                    'price' => $product->price,
-                    'quantity' => $quantity,
-                    'line_total' => $lineTotal,
+                    'product_id' => $item['product']->id,
+                    'price' => $this->formatCents($item['base_unit_price_cents']),
+                    'quantity' => $item['quantity'],
+                    'line_total' => $this->formatCents($item['line_total_cents']),
                 ]);
 
-                $this->inventoryService->deduct($product, $quantity);
+                $this->inventoryService->deduct($item['product'], $item['quantity']);
             }
 
             event(new OrderPlaced($order));
@@ -63,9 +59,20 @@ class OrderService
         });
     }
 
+    private function normalizeItems(array $items): array
+    {
+        return collect($items)
+            ->map(fn (array $item): array => [
+                'product_id' => (int) $item['product_id'],
+                'quantity' => (int) $item['quantity'],
+            ])
+            ->values()
+            ->all();
+    }
+
     private function loadProducts(array $items): Collection
     {
-        $productIds = collect($items)->pluck('product_id')->map(fn ($id): int => (int) $id)->unique();
+        $productIds = collect($items)->pluck('product_id')->unique()->values();
 
         return Product::query()
             ->whereIn('id', $productIds)
@@ -74,41 +81,93 @@ class OrderService
             ->keyBy('id');
     }
 
-    private function validateStock(array $items, Collection $products): void
+    private function validateItems(array $items, Collection $products): void
     {
         $quantitiesByProduct = collect($items)
-            ->groupBy(fn (array $item): int => (int) $item['product_id'])
-            ->map(fn (Collection $items): int => $items->sum(fn (array $item): int => (int) $item['quantity']));
+            ->groupBy('product_id')
+            ->map(fn (Collection $items): int => $items->sum('quantity'));
 
         foreach ($items as $index => $item) {
-            $productId = (int) $item['product_id'];
-            $product = $products->get($productId);
+            $product = $products->get($item['product_id']);
 
-            if (! $product || $product->stock < $quantitiesByProduct->get($productId)) {
+            if (! $product) {
                 throw ValidationException::withMessages([
-                    "items.{$index}.quantity" => 'Requested quantity is not available in stock.',
+                    "items.{$index}.product_id" => 'Selected product is not available.',
+                ]);
+            }
+
+            $requestedQuantity = (int) $quantitiesByProduct->get($product->id);
+
+            if ($item['quantity'] < $product->moq) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.quantity" => "MOQ for {$product->name} is {$product->moq} units.",
+                ]);
+            }
+
+            if ($requestedQuantity > $product->stock) {
+                throw ValidationException::withMessages([
+                    "items.{$index}.quantity" => "Only {$product->stock} units available for {$product->name}.",
                 ]);
             }
         }
     }
 
-    private function calculateSubtotal(array $items, Collection $products): float
+    private function priceItems(array $items, Collection $products): array
     {
-        return collect($items)->sum(function (array $item) use ($products): float {
-            $product = $products->get((int) $item['product_id']);
+        return collect($items)
+            ->map(function (array $item) use ($products): array {
+                $product = $products->get($item['product_id']);
+                $quantity = $item['quantity'];
+                $baseUnitPriceCents = $this->moneyToCents($product->price);
+                $discountRateBasisPoints = $this->bulkDiscountRateBasisPoints($quantity);
+                $lineSubtotalCents = $baseUnitPriceCents * $quantity;
+                $discountCents = intdiv($lineSubtotalCents * $discountRateBasisPoints, 10_000);
+                $lineTotalCents = $lineSubtotalCents - $discountCents;
 
-            return (float) $product->price * (int) $item['quantity'];
-        });
+                return [
+                    'product' => $product,
+                    'quantity' => $quantity,
+                    'base_unit_price_cents' => $baseUnitPriceCents,
+                    'discount_cents' => $discountCents,
+                    'line_subtotal_cents' => $lineSubtotalCents,
+                    'line_total_cents' => $lineTotalCents,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
-    private function calculateLineDiscount(array $items, Collection $products): float
+    private function calculateTotals(array $pricedItems): array
     {
-        return collect($items)->sum(function (array $item) use ($products): float {
-            $product = $products->get((int) $item['product_id']);
-            $lineSubtotal = (float) $product->price * (int) $item['quantity'];
+        $subtotalCents = collect($pricedItems)->sum('line_subtotal_cents');
+        $discountCents = collect($pricedItems)->sum('discount_cents');
+        $grandTotalCents = $subtotalCents - $discountCents + self::TAX_CENTS;
 
-            return min((float) ($item['discount'] ?? 0), $lineSubtotal);
-        });
+        return [
+            'subtotal_cents' => $subtotalCents,
+            'discount_cents' => $discountCents,
+            'grand_total_cents' => max(0, $grandTotalCents),
+        ];
+    }
+
+    private function bulkDiscountRateBasisPoints(int $quantity): int
+    {
+        return match (true) {
+            $quantity >= 50 => 1_000,
+            $quantity >= 20 => 500,
+            $quantity >= 10 => 200,
+            default => 0,
+        };
+    }
+
+    private function moneyToCents(string|float|int $amount): int
+    {
+        return (int) round((float) $amount * 100);
+    }
+
+    private function formatCents(int $cents): string
+    {
+        return number_format($cents / 100, 2, '.', '');
     }
 
     private function generateOrderNumber(): string
