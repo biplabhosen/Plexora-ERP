@@ -37,19 +37,29 @@
                 <div class="row g-3 align-items-end mb-4">
                     <div class="col-lg-6">
                         <label for="customer_id" class="form-label fw-semibold">Customer</label>
-                        <select
-                            name="customer_id"
-                            id="customer_id"
-                            class="form-select form-select-lg @error('customer_id') is-invalid @enderror"
-                            required
-                        >
-                            <option value="">Select customer</option>
-                            @foreach ($customers as $customer)
-                                <option value="{{ $customer->id }}" @selected((string) $selectedCustomer === (string) $customer->id)>
-                                    {{ $customer->name }}{{ $customer->email ? ' - '.$customer->email : '' }}
-                                </option>
-                            @endforeach
-                        </select>
+                        @if ($canChooseCustomer)
+                            <select
+                                name="customer_id"
+                                id="customer_id"
+                                class="form-select form-select-lg @error('customer_id') is-invalid @enderror"
+                                required
+                            >
+                                <option value="">Select customer</option>
+                                @foreach ($customers as $customer)
+                                    <option value="{{ $customer->id }}" @selected((string) $selectedCustomer === (string) $customer->id)>
+                                        {{ $customer->name }}{{ $customer->email ? ' - '.$customer->email : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="hidden" name="customer_id" value="{{ auth()->id() }}">
+                            <input
+                                type="text"
+                                class="form-control form-control-lg"
+                                value="{{ auth()->user()?->name }}{{ auth()->user()?->email ? ' - '.auth()->user()->email : '' }}"
+                                readonly
+                            >
+                        @endif
                         @error('customer_id')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

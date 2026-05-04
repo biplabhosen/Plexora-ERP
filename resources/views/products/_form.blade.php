@@ -1,19 +1,33 @@
 <div class="row g-3">
     <div class="col-12 col-lg-6">
         <label for="supplier_id" class="form-label">Supplier</label>
-        <select
-            name="supplier_id"
-            id="supplier_id"
-            class="form-select @error('supplier_id') is-invalid @enderror"
-            required
-        >
-            <option value="">Select supplier</option>
-            @foreach ($suppliers as $supplier)
-                <option value="{{ $supplier->id }}" @selected(old('supplier_id', $product->supplier_id) == $supplier->id)>
-                    {{ $supplier->company_name }}
-                </option>
-            @endforeach
-        </select>
+        @if ($suppliers->count() === 1)
+            <input
+                type="hidden"
+                name="supplier_id"
+                value="{{ old('supplier_id', $product->supplier_id ?? $suppliers->first()->id) }}"
+            >
+            <input
+                type="text"
+                class="form-control"
+                value="{{ $suppliers->first()->company_name }}"
+                readonly
+            >
+        @else
+            <select
+                name="supplier_id"
+                id="supplier_id"
+                class="form-select @error('supplier_id') is-invalid @enderror"
+                required
+            >
+                <option value="">Select supplier</option>
+                @foreach ($suppliers as $supplier)
+                    <option value="{{ $supplier->id }}" @selected(old('supplier_id', $product->supplier_id) == $supplier->id)>
+                        {{ $supplier->company_name }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
         @error('supplier_id')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror

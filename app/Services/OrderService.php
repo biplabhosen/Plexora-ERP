@@ -23,6 +23,10 @@ class OrderService
     public function place(array $data, User $user): Order
     {
         return DB::transaction(function () use ($data, $user): Order {
+            $customerId = $user->hasRole('admin')
+                ? ($data['customer_id'] ?? $user->id)
+                : $user->id;
+
             $items = $this->normalizeItems($data['items']);
             $products = $this->loadProducts($items);
 
@@ -32,7 +36,7 @@ class OrderService
             $totals = $this->calculateTotals($pricedItems);
 
             $order = Order::query()->create([
-                'customer_id' => $data['customer_id'] ?? $user->id,
+                'customer_id' => $customerId,
                 'order_number' => $this->generateOrderNumber(),
                 'subtotal' => $this->formatCents($totals['subtotal_cents']),
                 'discount' => $this->formatCents($totals['discount_cents']),
