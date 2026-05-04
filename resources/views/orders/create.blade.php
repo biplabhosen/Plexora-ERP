@@ -20,73 +20,158 @@
         </div>
     @endif
 
-    <form action="{{ route('orders.store') }}" method="POST">
+    @php
+        $oldItems = old('items', []);
+        $selectedCustomer = old('customer_id', auth()->id());
+    @endphp
+
+    <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
         @csrf
 
         <div class="card border-0 shadow-sm mb-4">
-            <div class="card-header bg-body border-0 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 py-3">
-                <div>
-                    <h2 class="h5 mb-1">Order Items</h2>
-                    <p class="text-muted mb-0 small">Choose active products and quantities for this order.</p>
+            <div class="card-body p-4">
+                <div class="row g-3 align-items-end mb-4">
+                    <div class="col-lg-6">
+                        <label for="customer_id" class="form-label fw-semibold">Customer</label>
+                        <select
+                            name="customer_id"
+                            id="customer_id"
+                            class="form-select form-select-lg @error('customer_id') is-invalid @enderror"
+                            required
+                        >
+                            <option value="">Select customer</option>
+                            @foreach ($customers as $customer)
+                                <option value="{{ $customer->id }}" @selected((string) $selectedCustomer === (string) $customer->id)>
+                                    {{ $customer->name }}{{ $customer->email ? ' - '.$customer->email : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('customer_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
 
-                <button type="button" class="btn btn-outline-primary" id="addOrderRow">
-                    <i class="fa fa-plus me-2"></i>Add Row
-                </button>
-            </div>
-
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table align-middle mb-0" id="orderItemsTable">
+                <div class="table-responsive border rounded">
+                    <table class="table table-bordered align-middle mb-0" id="orderItemsTable">
                         <thead class="table-light">
                             <tr>
-                                <th style="min-width: 280px;">Product</th>
-                                <th style="width: 160px;">Quantity</th>
-                                <th style="width: 120px;" class="text-end">Action</th>
+                                <th style="width: 70px;">#</th>
+                                <th style="min-width: 280px;">Description</th>
+                                <th style="width: 160px;" class="text-end">Quantity</th>
+                                <th style="width: 160px;" class="text-end">Unit Price</th>
+                                <th style="width: 160px;" class="text-end">Discount</th>
+                                <th style="width: 170px;" class="text-end">Line Total</th>
+                                <th style="width: 130px;" class="text-end">Action</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                                $oldItems = old('items', [['product_id' => '', 'quantity' => 1]]);
-                            @endphp
+                            <tr class="table-entry-row">
+                                <td class="fw-semibold">+</td>
+                                <td>
+                                    <select id="draftProduct" class="form-select">
+                                        <option value="">Select product</option>
+                                        @foreach ($products as $product)
+                                            <option
+                                                value="{{ $product->id }}"
+                                                data-price="{{ (float) $product->price }}"
+                                                data-name="{{ $product->name }}"
+                                                data-sku="{{ $product->sku }}"
+                                            >
+                                                {{ $product->name }} ({{ $product->sku }}) - Stock: {{ $product->stock }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" min="1" value="1" id="draftQuantity" class="form-control text-end">
+                                </td>
+                                <td class="text-end fw-semibold" id="draftUnitPrice">0.00</td>
+                                <td>
+                                    <input type="number" min="0" step="0.01" value="0" id="draftDiscount" class="form-control text-end">
+                                </td>
+                                <td class="text-end fw-semibold" id="draftLineTotal">0.00</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-success" id="addOrderRow">
+                                        Add
+                                    </button>
+                                </td>
+                            </tr>
 
                             @foreach ($oldItems as $index => $item)
-                                <tr>
-                                    <td>
-                                        <select name="items[{{ $index }}][product_id]" class="form-select @error("items.$index.product_id") is-invalid @enderror" required>
-                                            <option value="">Select product</option>
-                                            @foreach ($products as $product)
-                                                <option value="{{ $product->id }}" @selected((string) ($item['product_id'] ?? '') === (string) $product->id)>
-                                                    {{ $product->name }} ({{ $product->sku }}) - Stock: {{ $product->stock }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        @error("items.$index.product_id")
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="number"
-                                            min="1"
-                                            name="items[{{ $index }}][quantity]"
-                                            value="{{ $item['quantity'] ?? 1 }}"
-                                            class="form-control @error("items.$index.quantity") is-invalid @enderror"
-                                            required
-                                        >
-                                        @error("items.$index.quantity")
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </td>
-                                    <td class="text-end">
-                                        <button type="button" class="btn btn-outline-danger remove-order-row">
-                                            <i class="fa fa-trash me-1"></i>Remove
-                                        </button>
-                                    </td>
-                                </tr>
+                                @php
+                                    $product = $products->firstWhere('id', (int) ($item['product_id'] ?? 0));
+                                    $quantity = max(1, (int) ($item['quantity'] ?? 1));
+                                    $itemDiscount = max(0, (float) ($item['discount'] ?? 0));
+                                    $lineSubtotal = $product ? (float) $product->price * $quantity : 0;
+                                    $lineTotal = max(0, $lineSubtotal - $itemDiscount);
+                                @endphp
+                                @if ($product)
+                                    <tr
+                                        class="order-item-row"
+                                        data-product-id="{{ $product->id }}"
+                                        data-product-name="{{ $product->name }}"
+                                        data-product-sku="{{ $product->sku }}"
+                                        data-price="{{ (float) $product->price }}"
+                                        data-quantity="{{ $quantity }}"
+                                        data-discount="{{ $itemDiscount }}"
+                                    >
+                                        <td class="item-number">{{ $index + 1 }}</td>
+                                        <td>
+                                            <span class="fw-semibold">{{ $product->name }}</span>
+                                            <span class="text-muted small d-block">{{ $product->sku }}</span>
+                                            <input type="hidden" data-name="product_id" value="{{ $product->id }}">
+                                        </td>
+                                        <td class="text-end">
+                                            {{ $quantity }}
+                                            <input type="hidden" data-name="quantity" value="{{ $quantity }}">
+                                        </td>
+                                        <td class="text-end">{{ number_format((float) $product->price, 2) }}</td>
+                                        <td class="text-end">
+                                            {{ number_format($itemDiscount, 2) }}
+                                            <input type="hidden" data-name="discount" value="{{ $itemDiscount }}">
+                                        </td>
+                                        <td class="text-end fw-semibold">{{ number_format($lineTotal, 2) }}</td>
+                                        <td class="text-end">
+                                            <button type="button" class="btn btn-outline-danger remove-order-row">Remove</button>
+                                        </td>
+                                    </tr>
+                                @endif
                             @endforeach
                         </tbody>
                     </table>
+                </div>
+
+                <div class="row justify-content-end mt-4">
+                    <div class="col-md-7 col-lg-5 col-xl-4">
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <span class="text-muted">Sub Total</span>
+                            <span class="fw-semibold" id="subtotalDisplay">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <span class="text-muted">Item Discount</span>
+                            <span class="fw-semibold" id="itemDiscountDisplay">0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center py-2">
+                            <label for="discount" class="text-muted mb-0">Discount</label>
+                            <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                name="discount"
+                                id="discount"
+                                value="{{ old('discount', 0) }}"
+                                class="form-control text-end w-50 @error('discount') is-invalid @enderror"
+                            >
+                        </div>
+                        @error('discount')
+                            <div class="text-danger small text-end">{{ $message }}</div>
+                        @enderror
+                        <div class="d-flex justify-content-between align-items-center py-3 border-top">
+                            <span class="h5 mb-0">Grand Total</span>
+                            <span class="h4 mb-0 text-primary" id="grandTotalDisplay">0.00</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -114,78 +199,4 @@
             </div>
         </div>
     </form>
-
-    <template id="orderRowTemplate">
-        <tr>
-            <td>
-                <select data-name="product_id" class="form-select" required>
-                    <option value="">Select product</option>
-                    @foreach ($products as $product)
-                        <option value="{{ $product->id }}">
-                            {{ $product->name }} ({{ $product->sku }}) - Stock: {{ $product->stock }}
-                        </option>
-                    @endforeach
-                </select>
-            </td>
-            <td>
-                <input type="number" min="1" value="1" data-name="quantity" class="form-control" required>
-            </td>
-            <td class="text-end">
-                <button type="button" class="btn btn-outline-danger remove-order-row">
-                    <i class="fa fa-trash me-1"></i>Remove
-                </button>
-            </td>
-        </tr>
-    </template>
 @endsection
-
-@push('scripts')
-    <script>
-        const orderItemsTable = document.querySelector('#orderItemsTable tbody');
-        const orderRowTemplate = document.querySelector('#orderRowTemplate');
-        const addOrderRow = document.querySelector('#addOrderRow');
-
-        function renameOrderRows() {
-            orderItemsTable.querySelectorAll('tr').forEach((row, index) => {
-                row.querySelectorAll('[data-name]').forEach((input) => {
-                    input.name = `items[${index}][${input.dataset.name}]`;
-                });
-            });
-        }
-
-        function updateRemoveButtons() {
-            const buttons = orderItemsTable.querySelectorAll('.remove-order-row');
-            buttons.forEach((button) => {
-                button.disabled = buttons.length === 1;
-            });
-        }
-
-        addOrderRow.addEventListener('click', () => {
-            const row = orderRowTemplate.content.cloneNode(true);
-            orderItemsTable.appendChild(row);
-            renameOrderRows();
-            updateRemoveButtons();
-        });
-
-        orderItemsTable.addEventListener('click', (event) => {
-            const button = event.target.closest('.remove-order-row');
-
-            if (! button || orderItemsTable.querySelectorAll('tr').length === 1) {
-                return;
-            }
-
-            button.closest('tr').remove();
-            renameOrderRows();
-            updateRemoveButtons();
-        });
-
-        orderItemsTable.querySelectorAll('select, input').forEach((input) => {
-            if (! input.dataset.name) {
-                input.dataset.name = input.name.includes('[product_id]') ? 'product_id' : 'quantity';
-            }
-        });
-
-        renameOrderRows();
-        updateRemoveButtons();
-    </script>
-@endpush

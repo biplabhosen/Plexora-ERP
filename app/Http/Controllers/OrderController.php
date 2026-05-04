@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Order\StoreOrderRequest;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -33,6 +34,7 @@ class OrderController extends Controller
     {
         return view('orders.create', [
             'products' => Product::query()->active()->orderBy('name')->get(),
+            'customers' => User::query()->orderBy('name')->get(),
         ]);
     }
 

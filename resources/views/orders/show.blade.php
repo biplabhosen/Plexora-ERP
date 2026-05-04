@@ -105,20 +105,20 @@
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <th colspan="3" class="text-end">Subtotal</th>
-                        <th class="text-end">${{ number_format((float) $order->subtotal, 2) }}</th>
+                        <th colspan="3" class="text-end border-bottom-0">Subtotal</th>
+                        <th class="text-end border-bottom-0">${{ number_format((float) $order->subtotal, 2) }}</th>
                     </tr>
                     <tr>
-                        <th colspan="3" class="text-end">Discount</th>
-                        <th class="text-end">${{ number_format((float) $order->discount, 2) }}</th>
+                        <th colspan="3" class="text-end border-bottom-0">Discount</th>
+                        <th class="text-end border-bottom-0">${{ number_format((float) $order->discount, 2) }}</th>
                     </tr>
                     <tr>
-                        <th colspan="3" class="text-end">Tax</th>
-                        <th class="text-end">${{ number_format((float) $order->tax, 2) }}</th>
+                        <th colspan="3" class="text-end border-bottom-0">Tax</th>
+                        <th class="text-end border-bottom-0">${{ number_format((float) $order->tax, 2) }}</th>
                     </tr>
                     <tr>
-                        <th colspan="3" class="text-end">Grand Total</th>
-                        <th class="text-end">${{ number_format((float) $order->grand_total, 2) }}</th>
+                        <th colspan="3" class="text-end border-bottom-0">Grand Total</th>
+                        <th class="text-end border-bottom-0">${{ number_format((float) $order->grand_total, 2) }}</th>
                     </tr>
                 </tfoot>
             </table>

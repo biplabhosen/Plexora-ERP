@@ -24,14 +24,18 @@ class OrderService
             $this->validateStock($data['items'], $products);
 
             $subtotal = $this->calculateSubtotal($data['items'], $products);
+            $lineDiscount = $this->calculateLineDiscount($data['items'], $products);
+            $orderDiscount = (float) ($data['discount'] ?? 0);
+            $discount = $lineDiscount + $orderDiscount;
+            $grandTotal = max(0, $subtotal - $discount);
 
             $order = Order::create([
-                'customer_id' => $user->id,
+                'customer_id' => $data['customer_id'] ?? $user->id,
                 'order_number' => $this->generateOrderNumber(),
                 'subtotal' => $subtotal,
-                'discount' => 0,
+                'discount' => $discount,
                 'tax' => 0,
-                'grand_total' => $subtotal,
+                'grand_total' => $grandTotal,
                 'status' => 'pending',
                 'notes' => $data['notes'] ?? null,
             ]);
@@ -39,7 +43,9 @@ class OrderService
             foreach ($data['items'] as $item) {
                 $product = $products->get((int) $item['product_id']);
                 $quantity = (int) $item['quantity'];
-                $lineTotal = (float) $product->price * $quantity;
+                $lineSubtotal = (float) $product->price * $quantity;
+                $itemDiscount = min((float) ($item['discount'] ?? 0), $lineSubtotal);
+                $lineTotal = $lineSubtotal - $itemDiscount;
 
                 $order->items()->create([
                     'product_id' => $product->id,
@@ -92,6 +98,16 @@ class OrderService
             $product = $products->get((int) $item['product_id']);
 
             return (float) $product->price * (int) $item['quantity'];
+        });
+    }
+
+    private function calculateLineDiscount(array $items, Collection $products): float
+    {
+        return collect($items)->sum(function (array $item) use ($products): float {
+            $product = $products->get((int) $item['product_id']);
+            $lineSubtotal = (float) $product->price * (int) $item['quantity'];
+
+            return min((float) ($item['discount'] ?? 0), $lineSubtotal);
         });
     }
 
