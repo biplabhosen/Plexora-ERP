@@ -45,6 +45,42 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Marketing</div>
+                </li>
+                <li>
+                    <a href="{{ route('campaigns.index', ['type' => 'marketing']) }}" class="nav-link {{ request()->routeIs('campaigns.*') && request('type') !== 'social' ? 'active' : '' }}">
+                        <i class="fa fa-bullhorn me-2"></i> Campaigns
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('templates.index') }}" class="nav-link {{ request()->routeIs('templates.*') ? 'active' : '' }}">
+                        <i class="fa fa-envelope-open-text me-2"></i> Templates
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('calendar.index') }}" class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}">
+                        <i class="fa fa-calendar-days me-2"></i> Calendar
+                    </a>
+                </li>
+                <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Social Media</div>
+                </li>
+                <li>
+                    <a href="{{ route('campaigns.index', ['type' => 'social']) }}" class="nav-link {{ request()->routeIs('campaigns.*') && request('type') === 'social' ? 'active' : '' }}">
+                        <i class="fa fa-share-nodes me-2"></i> Scheduled Posts
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('calendar.index') }}" class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}">
+                        <i class="fa fa-table-cells-large me-2"></i> Content Calendar
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('campaigns.index', ['type' => 'social']) }}#social-accounts" class="nav-link {{ request()->routeIs('campaigns.*') && request('type') === 'social' ? 'active' : '' }}">
+                        <i class="fa fa-user-group me-2"></i> Accounts
+                    </a>
+                </li>
+                <li>
                     <span class="nav-link disabled text-white-50">
                         <i class="fa fa-chart-line me-2"></i> Reports
                     </span>
