@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -20,9 +21,19 @@ class OrderAccessTest extends TestCase
         $buyerRole = Role::create(['name' => 'user']);
         $buyer = User::factory()->create(['role_id' => $buyerRole->id]);
         $otherBuyer = User::factory()->create(['role_id' => $buyerRole->id]);
+        $buyerCustomer = Customer::create([
+            'user_id' => $buyer->id,
+            'name' => $buyer->name,
+            'email' => $buyer->email,
+        ]);
+        $otherBuyerCustomer = Customer::create([
+            'user_id' => $otherBuyer->id,
+            'name' => $otherBuyer->name,
+            'email' => $otherBuyer->email,
+        ]);
 
         $myOrder = Order::create([
-            'customer_id' => $buyer->id,
+            'customer_id' => $buyerCustomer->id,
             'order_number' => 'ORD-MINE-001',
             'subtotal' => '100.00',
             'discount' => '0.00',
@@ -32,7 +43,7 @@ class OrderAccessTest extends TestCase
         ]);
 
         $otherOrder = Order::create([
-            'customer_id' => $otherBuyer->id,
+            'customer_id' => $otherBuyerCustomer->id,
             'order_number' => 'ORD-OTHER-001',
             'subtotal' => '200.00',
             'discount' => '0.00',
@@ -62,6 +73,11 @@ class OrderAccessTest extends TestCase
         $supplierRole = Role::create(['name' => 'supplier']);
 
         $buyer = User::factory()->create(['role_id' => $buyerRole->id]);
+        $buyerCustomer = Customer::create([
+            'user_id' => $buyer->id,
+            'name' => $buyer->name,
+            'email' => $buyer->email,
+        ]);
         $supplierUser = User::factory()->create(['role_id' => $supplierRole->id]);
         $otherSupplierUser = User::factory()->create(['role_id' => $supplierRole->id]);
 
@@ -100,7 +116,7 @@ class OrderAccessTest extends TestCase
         ]);
 
         $mixedOrder = Order::create([
-            'customer_id' => $buyer->id,
+            'customer_id' => $buyerCustomer->id,
             'order_number' => 'ORD-MIXED-001',
             'subtotal' => '65.00',
             'discount' => '0.00',
@@ -126,7 +142,7 @@ class OrderAccessTest extends TestCase
         ]);
 
         $otherOrder = Order::create([
-            'customer_id' => $buyer->id,
+            'customer_id' => $buyerCustomer->id,
             'order_number' => 'ORD-BETA-ONLY',
             'subtotal' => '40.00',
             'discount' => '0.00',

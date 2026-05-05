@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Events\OrderConfirmed;
 use App\Events\OrderPlaced;
 use App\Models\Customer;
 use App\Models\Order;
@@ -67,6 +68,23 @@ class OrderService
             event(new OrderPlaced($order, $user));
 
             return $order->load(['items.product', 'customer']);
+        });
+    }
+
+    public function updateStatus(Order $order, string $status, ?User $user = null): Order
+    {
+        return DB::transaction(function () use ($order, $status, $user): Order {
+            $wasConfirmed = $order->status === 'confirmed';
+
+            $order->update([
+                'status' => $status,
+            ]);
+
+            if (! $wasConfirmed && $status === 'confirmed') {
+                event(new OrderConfirmed($order->fresh(['customer']), $user));
+            }
+
+            return $order->fresh(['items.product', 'customer']);
         });
     }
 

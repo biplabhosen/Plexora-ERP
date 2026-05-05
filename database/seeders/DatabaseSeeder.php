@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AutomationRuleSeeder::class,
             CampaignSeeder::class,
+            SupportSeeder::class,
         ]);
     }
 }
