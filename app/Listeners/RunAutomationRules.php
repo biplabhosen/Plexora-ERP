@@ -6,7 +6,9 @@ use App\Events\OrderPlaced;
 use App\Events\RfqCreated;
 use App\Events\StockLow;
 use App\Models\AutomationRule;
+use App\Models\Campaign;
 use App\Services\AutomationService;
+use App\Services\CampaignService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
@@ -15,7 +17,8 @@ class RunAutomationRules implements ShouldQueue
     use Queueable;
 
     public function __construct(
-        private readonly AutomationService $automationService
+        private readonly AutomationService $automationService,
+        private readonly CampaignService $campaignService,
     ) {}
 
     public function handle(OrderPlaced|RfqCreated|StockLow $event): void
@@ -33,5 +36,13 @@ class RunAutomationRules implements ShouldQueue
         };
 
         $this->automationService->run($eventName, $payload);
+
+        if ($event instanceof OrderPlaced) {
+            $this->campaignService->dispatchTriggeredCampaigns(Campaign::TRIGGER_ORDER_PLACED, $event->order);
+        }
+
+        if ($event instanceof RfqCreated) {
+            $this->campaignService->dispatchTriggeredCampaigns(Campaign::TRIGGER_RFQ_CREATED, $event->rfq);
+        }
     }
 }

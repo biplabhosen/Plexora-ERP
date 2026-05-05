@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\CalendarController;
+use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LeadController;
@@ -12,6 +14,7 @@ use App\Http\Controllers\AdminUserController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierApprovalController;
+use App\Http\Controllers\TemplateController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -21,7 +24,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/dashboard', DashboardController::class)
-    ->middleware('auth')
+    ->middleware('auth',)
     ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -71,6 +74,12 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
 
     Route::get('/automation/logs', [AutomationRuleController::class, 'logs'])->name('automation.logs');
     Route::resource('automation', AutomationRuleController::class)
+        ->except(['show']);
+
+    Route::get('/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+    Route::post('/campaigns/{campaign}/run', [CampaignController::class, 'run'])->name('campaigns.run');
+    Route::resource('campaigns', CampaignController::class);
+    Route::resource('templates', TemplateController::class)
         ->except(['show']);
 });
 

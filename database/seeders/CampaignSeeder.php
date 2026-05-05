@@ -1,0 +1,150 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Campaign;
+use App\Models\MessageTemplate;
+use Illuminate\Database\Seeder;
+
+class CampaignSeeder extends Seeder
+{
+    public function run(): void
+    {
+        MessageTemplate::query()->upsert([
+            [
+                'name' => 'Welcome Email',
+                'channel' => 'email',
+                'subject' => 'Welcome to Plexora ERP',
+                'body' => 'Thanks for joining Plexora. We are ready to support your B2B buying journey.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Order Confirmation Email',
+                'channel' => 'email',
+                'subject' => 'Your order has been received',
+                'body' => 'Your order is confirmed and our operations team is preparing the next steps.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Promotional SMS',
+                'channel' => 'sms',
+                'subject' => null,
+                'body' => 'Festival discount is now live. Contact sales for your custom wholesale rate.',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ], ['name'], ['channel', 'subject', 'body', 'updated_at']);
+
+        Campaign::query()->upsert([
+            [
+                'name' => 'Welcome Email',
+                'type' => 'marketing',
+                'channel' => 'email',
+                'audience' => 'event_customer',
+                'subject' => 'Welcome to Plexora ERP',
+                'content' => 'Welcome aboard. Our team is ready to help you source products and manage your orders efficiently.',
+                'media_path' => null,
+                'scheduled_at' => null,
+                'status' => 'scheduled',
+                'trigger_event' => 'customer_registered',
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Order Confirmation Email',
+                'type' => 'marketing',
+                'channel' => 'email',
+                'audience' => 'event_customer',
+                'subject' => 'Order confirmation from Plexora',
+                'content' => 'Your order has been placed successfully. Our team will keep you updated on fulfillment.',
+                'media_path' => null,
+                'scheduled_at' => null,
+                'status' => 'scheduled',
+                'trigger_event' => 'order_placed',
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'RFQ Follow-up Email',
+                'type' => 'marketing',
+                'channel' => 'email',
+                'audience' => 'event_customer',
+                'subject' => 'Your RFQ is under review',
+                'content' => 'We received your RFQ and our team will connect you with the right supplier shortly.',
+                'media_path' => null,
+                'scheduled_at' => null,
+                'status' => 'scheduled',
+                'trigger_event' => 'rfq_created',
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Festival Discount Campaign',
+                'type' => 'marketing',
+                'channel' => 'sms',
+                'audience' => 'all_customers',
+                'subject' => null,
+                'content' => 'Festival discount campaign is live. Reply to connect with our sales desk for enterprise pricing.',
+                'media_path' => null,
+                'scheduled_at' => now()->addDay()->setTime(10, 0),
+                'status' => 'scheduled',
+                'trigger_event' => null,
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Facebook Product Launch',
+                'type' => 'social',
+                'channel' => 'facebook',
+                'audience' => 'public',
+                'subject' => null,
+                'content' => 'Introducing our newest B2B catalog launch with faster fulfillment and richer automation.',
+                'media_path' => null,
+                'scheduled_at' => now()->addDays(2)->setTime(12, 0),
+                'status' => 'scheduled',
+                'trigger_event' => null,
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'name' => 'Instagram Weekend Promo',
+                'type' => 'social',
+                'channel' => 'instagram',
+                'audience' => 'public',
+                'subject' => null,
+                'content' => 'Weekend promo is now live with curated supplier highlights and limited-time pricing.',
+                'media_path' => null,
+                'scheduled_at' => now()->addDays(3)->setTime(18, 0),
+                'status' => 'scheduled',
+                'trigger_event' => null,
+                'is_active' => true,
+                'created_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ], ['name'], [
+            'type',
+            'channel',
+            'audience',
+            'subject',
+            'content',
+            'scheduled_at',
+            'status',
+            'trigger_event',
+            'is_active',
+            'updated_at',
+        ]);
+    }
+}
