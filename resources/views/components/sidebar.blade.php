@@ -42,7 +42,24 @@
                         <i class="fa fa-shopping-cart me-2"></i> Orders
                     </a>
                 </li>
-                <!-- Additional admin links can be added here -->
+                <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Inventory</div>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') || request()->routeIs('inventory.adjust') ? 'active' : '' }}">
+                        <i class="fa fa-warehouse me-2"></i> Stock Overview
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.low-stock') }}" class="nav-link {{ request()->routeIs('inventory.low-stock') ? 'active' : '' }}">
+                        <i class="fa fa-triangle-exclamation me-2"></i> Low Stock Alerts
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.logs') }}" class="nav-link {{ request()->routeIs('inventory.logs') ? 'active' : '' }}">
+                        <i class="fa fa-clock-rotate-left me-2"></i> Movement Logs
+                    </a>
+                </li>
             @elseif($role === 'supplier')
                 <li>
                     <a href="{{ route('dashboard') }}" class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
@@ -60,8 +77,21 @@
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
-                        <i class="fa fa-warehouse me-2"></i> Inventory
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Inventory</div>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') || request()->routeIs('inventory.adjust') ? 'active' : '' }}">
+                        <i class="fa fa-warehouse me-2"></i> Stock Overview
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.low-stock') }}" class="nav-link {{ request()->routeIs('inventory.low-stock') ? 'active' : '' }}">
+                        <i class="fa fa-triangle-exclamation me-2"></i> Low Stock Alerts
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('inventory.logs') }}" class="nav-link {{ request()->routeIs('inventory.logs') ? 'active' : '' }}">
+                        <i class="fa fa-clock-rotate-left me-2"></i> Movement Logs
                     </a>
                 </li>
                 <li>

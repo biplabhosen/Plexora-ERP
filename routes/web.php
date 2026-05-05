@@ -4,6 +4,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\AdminUserController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierApprovalController;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,12 @@ Route::middleware('auth')->group(function () {
     // Supplier application routes (buyer)
     Route::get('/become-supplier', [SupplierController::class, 'create'])->name('become-supplier');
     Route::post('/become-supplier', [SupplierController::class, 'store'])->name('become-supplier.store');
+
+    Route::get('/inventory', [InventoryController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/low-stock', [InventoryController::class, 'lowStock'])->name('inventory.low-stock');
+    Route::get('/inventory/logs', [InventoryController::class, 'logs'])->name('inventory.logs');
+    Route::get('/inventory/{product}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
+    Route::post('/inventory/{product}/adjust', [InventoryController::class, 'update'])->name('inventory.update');
 });
 
 Route::resource('products', ProductController::class)
