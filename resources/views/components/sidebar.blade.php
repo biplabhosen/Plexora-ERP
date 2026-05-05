@@ -30,6 +30,19 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Support</div>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}">
+                        <i class="fa fa-headset me-2"></i> Tickets
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.create') }}" class="nav-link {{ request()->routeIs('support-tickets.create') ? 'active' : '' }}">
+                        <i class="fa fa-ticket me-2"></i> Create Ticket
+                    </a>
+                </li>
+                <li>
                     <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}">
                         <i class="fa fa-file-signature me-2"></i> RFQ
                     </a>
@@ -125,6 +138,19 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Support</div>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}">
+                        <i class="fa fa-headset me-2"></i> Tickets
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.create') }}" class="nav-link {{ request()->routeIs('support-tickets.create') ? 'active' : '' }}">
+                        <i class="fa fa-ticket me-2"></i> Create Ticket
+                    </a>
+                </li>
+                <li>
                     <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">RFQ</div>
                 </li>
                 <li>
@@ -164,6 +190,19 @@
                 <li>
                     <a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
                         <i class="fa fa-shopping-cart me-2"></i> My Orders
+                    </a>
+                </li>
+                <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Support</div>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}">
+                        <i class="fa fa-headset me-2"></i> Tickets
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('support-tickets.create') }}" class="nav-link {{ request()->routeIs('support-tickets.create') ? 'active' : '' }}">
+                        <i class="fa fa-ticket me-2"></i> Create Ticket
                     </a>
                 </li>
                 <li>

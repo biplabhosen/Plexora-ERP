@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Mail\SupplierWorkflowMail;
+use App\Models\SupportTicket;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -15,10 +16,29 @@ class NotifySupplierJob implements ShouldQueue
     public function __construct(
         public array $context,
         public ?string $target = null
-    ) {}
+    ) {
+    }
 
     public function handle(): void
     {
+        if (($this->context['type'] ?? null) === 'support_ticket') {
+            $ticket = SupportTicket::query()->find($this->context['support_ticket_id'] ?? 0);
+
+            if (! $ticket) {
+                Log::warning('Support supplier notification skipped because the ticket was not found.', $this->context);
+
+                return;
+            }
+
+            Log::info('Supplier notified for ticket #'.$ticket->id, [
+                'ticket_id' => $ticket->id,
+                'supplier_id' => $ticket->supplier_id,
+                'category' => $ticket->category,
+            ]);
+
+            return;
+        }
+
         $recipient = $this->target ?: ($this->context['supplier_email'] ?? null);
 
         if (! $recipient) {

@@ -15,6 +15,8 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierApprovalController;
 use App\Http\Controllers\TemplateController;
+use App\Http\Controllers\SupportReplyController;
+use App\Http\Controllers\SupportTicketController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -57,6 +59,12 @@ Route::resource('orders', OrderController::class)
     ->middleware('auth');
 
 Route::middleware('auth')->group(function () {
+    Route::resource('support-tickets', SupportTicketController::class)
+        ->only(['index', 'create', 'store', 'show']);
+    Route::post('/support-tickets/{supportTicket}/reply', [SupportReplyController::class, 'store'])
+        ->name('support.reply');
+    Route::patch('/support-tickets/{supportTicket}/status', [SupportTicketController::class, 'updateStatus'])
+        ->name('support.status');
     Route::resource('rfqs', RfqController::class)
         ->only(['index', 'create', 'store', 'show']);
 });
