@@ -60,6 +60,11 @@ class User extends Authenticatable
         return $this->hasOne(Supplier::class);
     }
 
+    public function customer(): HasOne
+    {
+        return $this->hasOne(Customer::class);
+    }
+
     public function hasRole(string $role): bool
     {
         return $this->role?->name === $role;

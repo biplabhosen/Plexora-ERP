@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Order\StoreOrderRequest;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
-use App\Models\User;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Database\Eloquent\Builder;
@@ -36,7 +36,9 @@ class OrderController extends Controller
                 $builder->where('supplier_id', $supplier->id);
             });
         } elseif (! $user?->hasRole('admin')) {
-            $query->where('customer_id', $user?->id);
+            $query->whereHas('customer', function (Builder $builder) use ($user): void {
+                $builder->where('user_id', $user?->id);
+            });
         }
 
         $orders = $query->paginate(10)->withQueryString();
@@ -57,9 +59,10 @@ class OrderController extends Controller
         return view('orders.create', [
             'products' => Product::query()->active()->orderBy('name')->get(),
             'customers' => $user?->hasRole('admin')
-                ? User::query()->orderBy('name')->get()
-                : User::query()->whereKey($user?->id)->get(),
+                ? Customer::query()->orderBy('name')->get()
+                : Customer::query()->where('user_id', $user?->id)->get(),
             'canChooseCustomer' => $user?->hasRole('admin') ?? false,
+            'defaultCustomerId' => $user?->customer?->id,
         ]);
     }
 
@@ -99,7 +102,7 @@ class OrderController extends Controller
             $order->setRelation('items', $visibleItems);
         } else {
             if (! $user?->hasRole('admin')) {
-                abort_if($order->customer_id !== $user?->id, 403);
+                abort_if($order->customer?->user_id !== $user?->id, 403);
             }
 
             $order->load(['items.product', 'customer']);
