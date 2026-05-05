@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\RfqController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
@@ -36,6 +38,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/inventory/logs', [InventoryController::class, 'logs'])->name('inventory.logs');
     Route::get('/inventory/{product}/adjust', [InventoryController::class, 'adjust'])->name('inventory.adjust');
     Route::post('/inventory/{product}/adjust', [InventoryController::class, 'update'])->name('inventory.update');
+    Route::resource('customers', CustomerController::class)
+        ->only(['index', 'show']);
+    Route::post('/customers/{customer}/notes', [CustomerController::class, 'storeNote'])->name('customers.notes.store');
+    Route::resource('leads', LeadController::class)
+        ->except(['show']);
 });
 
 Route::resource('products', ProductController::class)

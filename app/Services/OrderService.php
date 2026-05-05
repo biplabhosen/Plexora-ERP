@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Events\OrderPlaced;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -17,15 +18,21 @@ class OrderService
     private const TAX_CENTS = 0;
 
     public function __construct(
-        private readonly InventoryService $inventoryService
-    ) {}
+        private readonly InventoryService $inventoryService,
+        private readonly CustomerService $customerService,
+    ) {
+    }
 
     public function place(array $data, User $user): Order
     {
         return DB::transaction(function () use ($data, $user): Order {
             $customerId = $user->hasRole('admin')
-                ? ($data['customer_id'] ?? $user->id)
-                : $user->id;
+                ? (int) ($data['customer_id'] ?? 0)
+                : $this->customerService->ensureCustomerExists($user)->id;
+
+            if ($user->hasRole('admin')) {
+                $this->ensureAdminSelectedCustomer($customerId);
+            }
 
             $items = $this->normalizeItems($data['items']);
             $products = $this->loadProducts($items);
@@ -57,10 +64,21 @@ class OrderService
                 $this->inventoryService->deduct($item['product'], $item['quantity']);
             }
 
-            event(new OrderPlaced($order));
+            event(new OrderPlaced($order, $user));
 
             return $order->load(['items.product', 'customer']);
         });
+    }
+
+    private function ensureAdminSelectedCustomer(int $customerId): void
+    {
+        if ($customerId > 0 && Customer::query()->whereKey($customerId)->exists()) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'customer_id' => 'Please select a valid customer profile.',
+        ]);
     }
 
     private function normalizeItems(array $items): array

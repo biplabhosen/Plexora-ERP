@@ -55,6 +55,19 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">CRM</div>
+                </li>
+                <li>
+                    <a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}">
+                        <i class="fa fa-address-book me-2"></i> Customers
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('leads.index') }}" class="nav-link {{ request()->routeIs('leads.*') ? 'active' : '' }}">
+                        <i class="fa fa-filter-circle-dollar me-2"></i> Leads
+                    </a>
+                </li>
+                <li>
                     <span class="nav-link disabled text-white-50">
                         <i class="fa fa-gear me-2"></i> Settings
                     </span>

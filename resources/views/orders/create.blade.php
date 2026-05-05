@@ -26,7 +26,7 @@
 
     @php
         $oldItems = old('items', []);
-        $selectedCustomer = old('customer_id', auth()->id());
+        $selectedCustomer = old('customer_id', $defaultCustomerId);
     @endphp
 
     <form action="{{ route('orders.store') }}" method="POST" id="orderForm">
@@ -52,11 +52,11 @@
                                 @endforeach
                             </select>
                         @else
-                            <input type="hidden" name="customer_id" value="{{ auth()->id() }}">
+                            <input type="hidden" name="customer_id" value="{{ $defaultCustomerId }}">
                             <input
                                 type="text"
                                 class="form-control form-control-lg"
-                                value="{{ auth()->user()?->name }}{{ auth()->user()?->email ? ' - '.auth()->user()->email : '' }}"
+                                value="{{ $customers->first()?->name }}{{ $customers->first()?->email ? ' - '.$customers->first()->email : '' }}"
                                 readonly
                             >
                         @endif
