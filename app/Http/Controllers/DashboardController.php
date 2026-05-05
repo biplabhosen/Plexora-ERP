@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DashboardService;
-use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
 
 class DashboardController extends Controller
 {
-    public function __construct(
-        private readonly DashboardService $dashboardService,
-    ) {
-    }
-
-    public function __invoke(): View
+    public function index(): RedirectResponse
     {
-        return view('dashboard.index', [
-            'metrics' => $this->dashboardService->getMetrics(),
-        ]);
+        $role = auth()->user()?->role?->name;
+
+        return match (str($role)->lower()->replace([' ', '-'], '_')->toString()) {
+            'admin', 'marketing_manager', 'support_agent' => redirect()->route('admin.dashboard'),
+            'buyer', 'user' => redirect()->route('buyer.dashboard'),
+            'supplier' => redirect()->route('supplier.dashboard'),
+            default => abort(403),
+        };
     }
 }

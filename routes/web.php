@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\ModuleController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\Buyer\BuyerDashboardController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CustomerController;
@@ -14,6 +16,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\Supplier\SupplierDashboardController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\SupplierApprovalController;
 use App\Http\Controllers\TemplateController;
@@ -27,9 +30,30 @@ Route::get('/', function () {
         : redirect()->route('login');
 })->name('home');
 
-Route::get('/dashboard', DashboardController::class)
-    ->middleware('auth',)
+Route::get('/dashboard', [DashboardController::class, 'index'])
+    ->middleware('auth')
     ->name('dashboard');
+
+Route::prefix('admin')
+    ->middleware(['auth', 'role:admin,marketing_manager,support_agent'])
+    ->group(function () {
+        Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+            ->name('admin.dashboard');
+    });
+
+Route::prefix('buyer')
+    ->middleware(['auth', 'role:buyer'])
+    ->group(function () {
+        Route::get('/dashboard', [BuyerDashboardController::class, 'index'])
+            ->name('buyer.dashboard');
+    });
+
+Route::prefix('supplier')
+    ->middleware(['auth', 'role:supplier'])
+    ->group(function () {
+        Route::get('/dashboard', [SupplierDashboardController::class, 'index'])
+            ->name('supplier.dashboard');
+    });
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
