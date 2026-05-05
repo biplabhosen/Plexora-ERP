@@ -15,6 +15,9 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_INACTIVE = 'inactive';
+
     /**
      * The attributes that are mass assignable.
      *
@@ -24,6 +27,7 @@ class User extends Authenticatable
         'name',
         'email',
         'role_id',
+        'status',
         'password',
     ];
 
@@ -67,6 +71,30 @@ class User extends Authenticatable
 
     public function hasRole(string $role): bool
     {
-        return $this->role?->name === $role;
+        return $this->normalizeRoleName($this->role?->name) === $this->normalizeRoleName($role);
+    }
+
+    public function hasAnyRole(array $roles): bool
+    {
+        return collect($roles)->contains(fn (string $role): bool => $this->hasRole($role));
+    }
+
+    public function isActive(): bool
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    private function normalizeRoleName(?string $role): ?string
+    {
+        if ($role === null) {
+            return null;
+        }
+
+        $normalized = str($role)
+            ->lower()
+            ->replace([' ', '-'], '_')
+            ->toString();
+
+        return $normalized === 'user' ? 'buyer' : $normalized;
     }
 }

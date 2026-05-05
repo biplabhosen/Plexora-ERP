@@ -11,8 +11,19 @@ class Role extends Model
         'name',
     ];
 
+    protected $appends = [
+        'label',
+    ];
+
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    public function getLabelAttribute(): string
+    {
+        return $this->name === 'user'
+            ? 'Buyer'
+            : str($this->name)->headline()->toString();
     }
 }

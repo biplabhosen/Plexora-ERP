@@ -38,6 +38,100 @@
         <div class="mt-4">
             @include('dashboard.partials.alerts', ['metrics' => $metrics])
         </div>
+
+        @if (auth()->user()?->hasRole('admin'))
+            <div class="row g-4 mt-1">
+                <div class="col-12 col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div>
+                                    <h2 class="h5 mb-1">Latest Users</h2>
+                                    <p class="text-muted small mb-0">Newest team and buyer accounts entering the platform.</p>
+                                </div>
+                                <a href="{{ route('admin.users.index') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Joined</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($metrics['recentUsers'] as $user)
+                                            <tr>
+                                                <td class="fw-semibold">{{ $user->name }}</td>
+                                                <td>{{ str($user->role?->name ?? 'unassigned')->headline() }}</td>
+                                                <td>
+                                                    <span class="badge {{ $user->status === 'active' ? 'text-bg-success' : 'text-bg-danger' }}">
+                                                        {{ ucfirst($user->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ $user->created_at?->format('M d, Y') }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">No recent users found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-xl-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center justify-content-between mb-3">
+                                <div>
+                                    <h2 class="h5 mb-1">Latest Tickets</h2>
+                                    <p class="text-muted small mb-0">Newest support activity across customers and suppliers.</p>
+                                </div>
+                                <a href="{{ route('support-tickets.index') }}" class="btn btn-sm btn-outline-primary">Open Tickets</a>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Subject</th>
+                                            <th>Status</th>
+                                            <th>Priority</th>
+                                            <th>Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse ($metrics['recentTickets'] as $ticket)
+                                            <tr>
+                                                <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($ticket->subject, 36) }}</td>
+                                                <td>
+                                                    <span class="badge {{ $ticket->status === 'open' ? 'text-bg-warning' : ($ticket->status === 'resolved' ? 'text-bg-success' : 'text-bg-secondary') }}">
+                                                        {{ ucfirst($ticket->status) }}
+                                                    </span>
+                                                </td>
+                                                <td>{{ ucfirst($ticket->priority) }}</td>
+                                                <td>{{ $ticket->created_at?->format('M d, Y') }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center text-muted py-4">No recent tickets found.</td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 @endsection
 

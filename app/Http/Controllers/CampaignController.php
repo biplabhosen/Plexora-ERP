@@ -21,13 +21,27 @@ class CampaignController extends Controller
 
     public function index(Request $request): View
     {
+        $enabledTypes = collect(Campaign::types())
+            ->filter(fn (string $type): bool => module_enabled($type))
+            ->values();
+
+        abort_if($enabledTypes->isEmpty(), 403, 'Module disabled');
+
         $type = $request->string('type')->toString() ?: null;
+
+        if ($type) {
+            abort_unless(module_enabled($type), 403, 'Module disabled');
+        }
 
         return view('campaigns.index', [
             'campaigns' => Campaign::query()
                 ->with('creator')
                 ->withCount('logs')
-                ->forType($type)
+                ->when(
+                    $type,
+                    fn ($query) => $query->forType($type),
+                    fn ($query) => $query->whereIn('type', $enabledTypes->all())
+                )
                 ->latest()
                 ->paginate(12)
                 ->withQueryString(),
@@ -38,7 +52,13 @@ class CampaignController extends Controller
 
     public function create(): View
     {
+        $defaultType = request()->string('type')->toString()
+            ?: (module_enabled(Campaign::TYPE_MARKETING) ? Campaign::TYPE_MARKETING : Campaign::TYPE_SOCIAL);
+
+        abort_unless(module_enabled($defaultType), 403, 'Module disabled');
+
         return view('campaigns.create', $this->formData(new Campaign([
+            'type' => $defaultType,
             'status' => Campaign::STATUS_DRAFT,
             'is_active' => true,
         ])));
@@ -46,6 +66,8 @@ class CampaignController extends Controller
 
     public function store(StoreCampaignRequest $request): RedirectResponse
     {
+        abort_unless(module_enabled($request->validated('type')), 403, 'Module disabled');
+
         $campaign = $this->campaignService->createCampaign(
             $request->validated(),
             $request->file('media'),
@@ -59,6 +81,8 @@ class CampaignController extends Controller
 
     public function show(Campaign $campaign): View
     {
+        abort_unless(module_enabled($campaign->type), 403, 'Module disabled');
+
         $campaign->load([
             'creator',
             'logs' => fn ($query) => $query->latest()->limit(25),
@@ -77,6 +101,8 @@ class CampaignController extends Controller
 
     public function edit(Campaign $campaign): View
     {
+        abort_unless(module_enabled($campaign->type), 403, 'Module disabled');
+
         return view('campaigns.edit', $this->formData($campaign) + [
             'deleteAction' => route('campaigns.destroy', $campaign),
         ]);
@@ -84,6 +110,9 @@ class CampaignController extends Controller
 
     public function update(UpdateCampaignRequest $request, Campaign $campaign): RedirectResponse
     {
+        abort_unless(module_enabled($campaign->type), 403, 'Module disabled');
+        abort_unless(module_enabled($request->validated('type')), 403, 'Module disabled');
+
         $campaign = $this->campaignService->updateCampaign(
             $campaign,
             $request->validated(),
@@ -97,6 +126,8 @@ class CampaignController extends Controller
 
     public function destroy(Campaign $campaign): RedirectResponse
     {
+        abort_unless(module_enabled($campaign->type), 403, 'Module disabled');
+
         $campaign->delete();
 
         return redirect()
@@ -106,6 +137,8 @@ class CampaignController extends Controller
 
     public function run(Campaign $campaign): RedirectResponse
     {
+        abort_unless(module_enabled($campaign->type), 403, 'Module disabled');
+
         $this->campaignService->runCampaign($campaign);
 
         return redirect()
@@ -117,7 +150,10 @@ class CampaignController extends Controller
     {
         return [
             'campaign' => $campaign,
-            'types' => Campaign::types(),
+            'types' => collect(Campaign::types())
+                ->filter(fn (string $type): bool => module_enabled($type))
+                ->values()
+                ->all(),
             'channels' => Campaign::channels(),
             'statuses' => Campaign::statuses(),
             'triggerEvents' => Campaign::triggerEvents(),

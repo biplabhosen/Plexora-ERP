@@ -2,11 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\Campaign;
+use App\Models\Customer;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Rfq;
+use App\Models\SupportTicket;
 use App\Models\Supplier;
+use App\Models\User;
 use App\Models\WorkflowLog;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
@@ -32,6 +36,10 @@ class DashboardService
                 'openRfqs' => Rfq::query()->where('status', 'open')->count(),
                 'lowStockProducts' => Product::query()->whereColumn('stock', '<=', 'moq')->count(),
                 'automationRunsToday' => WorkflowLog::query()->whereDate('created_at', $today)->count(),
+                'totalUsers' => User::query()->count(),
+                'totalCustomers' => Customer::query()->count(),
+                'openTickets' => SupportTicket::query()->open()->count(),
+                'scheduledCampaigns' => Campaign::query()->scheduled()->count(),
                 'recentOrders' => Order::query()
                     ->with('customer:id,name')
                     ->latest()
@@ -47,6 +55,16 @@ class DashboardService
                     ->get(),
                 'recentLogs' => WorkflowLog::query()
                     ->with('automationRule:id,name')
+                    ->latest()
+                    ->limit(5)
+                    ->get(),
+                'recentUsers' => User::query()
+                    ->with('role:id,name')
+                    ->latest()
+                    ->limit(5)
+                    ->get(),
+                'recentTickets' => SupportTicket::query()
+                    ->with(['customer:id,name', 'assignee:id,name'])
                     ->latest()
                     ->limit(5)
                     ->get(),
