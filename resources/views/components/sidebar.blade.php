@@ -15,26 +15,13 @@
                     </a>
                 </li>
                 <li>
-                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Suppliers</div>
-                </li>
-                <li>
-                    <a href="{{ route('admin.suppliers.index', ['status' => 'pending']) }}" class="nav-link {{ request()->routeIs('admin.suppliers.*') && request('status') === 'pending' ? 'active' : '' }}">
-                        <i class="fa fa-hourglass-half me-2"></i> Pending Approvals
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('admin.suppliers.index') }}" class="nav-link {{ request()->routeIs('admin.suppliers.*') && !request('status') ? 'active' : '' }}">
-                        <i class="fa fa-truck me-2"></i> All Suppliers
-                    </a>
-                </li>
-                <li>
                     <a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}">
                         <i class="fa fa-box me-2"></i> Products
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                        <i class="fa fa-users me-2"></i> Users
+                    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
+                        <i class="fa fa-warehouse me-2"></i> Inventory
                     </a>
                 </li>
                 <li>
@@ -43,48 +30,34 @@
                     </a>
                 </li>
                 <li>
-                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">RFQ</div>
-                </li>
-                <li>
-                    <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.index') || request()->routeIs('rfqs.show') ? 'active' : '' }}">
-                        <i class="fa fa-file-signature me-2"></i> All RFQs
+                    <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}">
+                        <i class="fa fa-file-signature me-2"></i> RFQ
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('rfqs.create') }}" class="nav-link {{ request()->routeIs('rfqs.create') ? 'active' : '' }}">
-                        <i class="fa fa-file-circle-plus me-2"></i> Create RFQ
+                    <a href="{{ route('admin.suppliers.index') }}" class="nav-link {{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}">
+                        <i class="fa fa-truck me-2"></i> Suppliers
                     </a>
                 </li>
                 <li>
-                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Automation</div>
-                </li>
-                <li>
-                    <a href="{{ route('automation.index') }}" class="nav-link {{ request()->routeIs('automation.index') || request()->routeIs('automation.create') || request()->routeIs('automation.edit') ? 'active' : '' }}">
-                        <i class="fa fa-bolt me-2"></i> Rules
+                    <a href="{{ route('automation.index') }}" class="nav-link {{ request()->routeIs('automation.*') ? 'active' : '' }}">
+                        <i class="fa fa-bolt me-2"></i> Automation
                     </a>
                 </li>
                 <li>
-                    <a href="{{ route('automation.logs') }}" class="nav-link {{ request()->routeIs('automation.logs') ? 'active' : '' }}">
-                        <i class="fa fa-list-check me-2"></i> Logs
+                    <span class="nav-link disabled text-white-50">
+                        <i class="fa fa-chart-line me-2"></i> Reports
+                    </span>
+                </li>
+                <li>
+                    <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <i class="fa fa-users me-2"></i> Users
                     </a>
                 </li>
                 <li>
-                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Inventory</div>
-                </li>
-                <li>
-                    <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.index') || request()->routeIs('inventory.adjust') ? 'active' : '' }}">
-                        <i class="fa fa-warehouse me-2"></i> Stock Overview
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('inventory.low-stock') }}" class="nav-link {{ request()->routeIs('inventory.low-stock') ? 'active' : '' }}">
-                        <i class="fa fa-triangle-exclamation me-2"></i> Low Stock Alerts
-                    </a>
-                </li>
-                <li>
-                    <a href="{{ route('inventory.logs') }}" class="nav-link {{ request()->routeIs('inventory.logs') ? 'active' : '' }}">
-                        <i class="fa fa-clock-rotate-left me-2"></i> Movement Logs
-                    </a>
+                    <span class="nav-link disabled text-white-50">
+                        <i class="fa fa-gear me-2"></i> Settings
+                    </span>
                 </li>
             @elseif($role === 'supplier')
                 <li>
