@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\Dashboard;
 
 use App\Models\Campaign;
 use App\Models\Customer;
@@ -16,11 +16,11 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
-class DashboardService
+class AdminDashboardService
 {
     public function getMetrics(): array
     {
-        return Cache::remember('dashboard.metrics', now()->addMinutes(2), function (): array {
+        return Cache::remember('dashboard.admin.metrics', now()->addMinutes(2), function (): array {
             $today = today();
             $monthStart = now()->startOfMonth();
             $weekStart = CarbonImmutable::today()->subDays(6);
@@ -40,16 +40,9 @@ class DashboardService
                 'totalCustomers' => Customer::query()->count(),
                 'openTickets' => SupportTicket::query()->open()->count(),
                 'scheduledCampaigns' => Campaign::query()->scheduled()->count(),
-                'recentOrders' => Order::query()
-                    ->with('customer:id,name')
-                    ->latest()
-                    ->limit(5)
-                    ->get(),
+                'recentOrders' => Order::query()->with('customer:id,name')->latest()->limit(5)->get(),
                 'recentRfqs' => Rfq::query()
-                    ->with([
-                        'buyer:id,name',
-                        'supplier:id,company_name',
-                    ])
+                    ->with(['buyer:id,name', 'supplier:id,company_name'])
                     ->latest()
                     ->limit(5)
                     ->get(),
@@ -83,14 +76,11 @@ class DashboardService
             ->groupBy('chart_date')
             ->pluck('aggregate', 'chart_date');
 
-        $period = collect(range(0, 6))
-            ->map(fn (int $offset): CarbonImmutable => $startDate->addDays($offset));
+        $period = collect(range(0, 6))->map(fn (int $offset): CarbonImmutable => $startDate->addDays($offset));
 
         return [
             'labels' => $period->map(fn (CarbonImmutable $date): string => $date->format('M d'))->all(),
-            'series' => $period->map(
-                fn (CarbonImmutable $date): int => (int) ($counts[$date->toDateString()] ?? 0)
-            )->all(),
+            'series' => $period->map(fn (CarbonImmutable $date): int => (int) ($counts[$date->toDateString()] ?? 0))->all(),
         ];
     }
 
@@ -102,14 +92,11 @@ class DashboardService
             ->groupBy('chart_date')
             ->pluck('aggregate', 'chart_date');
 
-        $period = collect(range(0, 29))
-            ->map(fn (int $offset): CarbonImmutable => $startDate->addDays($offset));
+        $period = collect(range(0, 29))->map(fn (int $offset): CarbonImmutable => $startDate->addDays($offset));
 
         return [
             'labels' => $period->map(fn (CarbonImmutable $date): string => $date->format('M d'))->all(),
-            'series' => $period->map(
-                fn (CarbonImmutable $date): float => round((float) ($revenue[$date->toDateString()] ?? 0), 2)
-            )->all(),
+            'series' => $period->map(fn (CarbonImmutable $date): float => round((float) ($revenue[$date->toDateString()] ?? 0), 2))->all(),
         ];
     }
 
@@ -117,11 +104,7 @@ class DashboardService
     {
         $topProducts = OrderItem::query()
             ->join('products', 'products.id', '=', 'order_items.product_id')
-            ->select(
-                'order_items.product_id',
-                'products.name',
-                DB::raw('SUM(order_items.quantity) as total_quantity')
-            )
+            ->select('order_items.product_id', 'products.name', DB::raw('SUM(order_items.quantity) as total_quantity'))
             ->groupBy('order_items.product_id', 'products.name')
             ->orderByDesc('total_quantity')
             ->limit(5)

@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
+            RoleSeeder::class,
+            SettingSeeder::class,
             AutomationRuleSeeder::class,
             CampaignSeeder::class,
             SupportSeeder::class,

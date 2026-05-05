@@ -158,11 +158,11 @@
 
 <body>
 <div class="app-shell d-flex">
-    @include('components.sidebar')
+    @include('layouts.sidebar')
     <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
 
     <div class="main-content" id="mainContent">
-        @include('components.navbar')
+        @include('layouts.topbar')
 
         @isset($header)
             <header class="content-header px-4 py-3">

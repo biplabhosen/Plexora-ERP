@@ -15,7 +15,7 @@ class SupportSeeder extends Seeder
 {
     public function run(): void
     {
-        $buyerRole = Role::query()->firstOrCreate(['name' => 'buyer']);
+        $buyerRole = Role::query()->firstOrCreate(['name' => 'user']);
         $supplierRole = Role::query()->firstOrCreate(['name' => 'supplier']);
 
         $buyer = User::query()->firstOrCreate(

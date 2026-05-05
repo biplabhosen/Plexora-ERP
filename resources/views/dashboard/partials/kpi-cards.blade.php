@@ -77,3 +77,64 @@
         </div>
     @endforeach
 </div>
+
+@if (auth()->user()?->hasRole('admin'))
+    @php
+        $adminCards = [
+            [
+                'title' => 'Total Users',
+                'value' => number_format($metrics['totalUsers']),
+                'icon' => 'fa-users',
+                'helper' => 'All registered platform accounts',
+                'accent' => 'primary',
+            ],
+            [
+                'title' => 'Total Customers',
+                'value' => number_format($metrics['totalCustomers']),
+                'icon' => 'fa-user-tag',
+                'helper' => 'CRM customer profiles in the system',
+                'accent' => 'info',
+            ],
+            [
+                'title' => 'Open Tickets',
+                'value' => number_format($metrics['openTickets']),
+                'icon' => 'fa-life-ring',
+                'helper' => 'Support issues currently awaiting resolution',
+                'accent' => 'warning',
+            ],
+            [
+                'title' => 'Scheduled Campaigns',
+                'value' => number_format($metrics['scheduledCampaigns']),
+                'icon' => 'fa-calendar-check',
+                'helper' => 'Marketing and social campaigns queued to run',
+                'accent' => 'success',
+            ],
+        ];
+    @endphp
+
+    <div class="row g-4 mt-1">
+        @foreach ($adminCards as $card)
+            <div class="col-12 col-md-6 col-xl-3">
+                <div class="card metric-card h-100">
+                    <div class="card-body py-4">
+                        <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
+                            <div>
+                                <div class="text-muted small text-uppercase fw-semibold mb-2">{{ $card['title'] }}</div>
+                                <div class="h4 fw-bold mb-1">{{ $card['value'] }}</div>
+                            </div>
+
+                            <span class="metric-icon text-{{ $card['accent'] }}">
+                                <i class="fa {{ $card['icon'] }}"></i>
+                            </span>
+                        </div>
+
+                        <div class="small text-muted d-flex align-items-center gap-2">
+                            <span class="signal-dot bg-{{ $card['accent'] }}"></span>
+                            <span>{{ $card['helper'] }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endforeach
+    </div>
+@endif
