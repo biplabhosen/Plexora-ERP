@@ -43,6 +43,32 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">RFQ</div>
+                </li>
+                <li>
+                    <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.index') || request()->routeIs('rfqs.show') ? 'active' : '' }}">
+                        <i class="fa fa-file-signature me-2"></i> All RFQs
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('rfqs.create') }}" class="nav-link {{ request()->routeIs('rfqs.create') ? 'active' : '' }}">
+                        <i class="fa fa-file-circle-plus me-2"></i> Create RFQ
+                    </a>
+                </li>
+                <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Automation</div>
+                </li>
+                <li>
+                    <a href="{{ route('automation.index') }}" class="nav-link {{ request()->routeIs('automation.index') || request()->routeIs('automation.create') || request()->routeIs('automation.edit') ? 'active' : '' }}">
+                        <i class="fa fa-bolt me-2"></i> Rules
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('automation.logs') }}" class="nav-link {{ request()->routeIs('automation.logs') ? 'active' : '' }}">
+                        <i class="fa fa-list-check me-2"></i> Logs
+                    </a>
+                </li>
+                <li>
                     <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Inventory</div>
                 </li>
                 <li>
@@ -77,6 +103,14 @@
                     </a>
                 </li>
                 <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">RFQ</div>
+                </li>
+                <li>
+                    <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}">
+                        <i class="fa fa-file-signature me-2"></i> All RFQs
+                    </a>
+                </li>
+                <li>
                     <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">Inventory</div>
                 </li>
                 <li>
@@ -108,6 +142,19 @@
                 <li>
                     <a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}">
                         <i class="fa fa-shopping-cart me-2"></i> My Orders
+                    </a>
+                </li>
+                <li>
+                    <div class="text-uppercase small fw-semibold text-white-50 px-3 pt-2">RFQ</div>
+                </li>
+                <li>
+                    <a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.index') || request()->routeIs('rfqs.show') ? 'active' : '' }}">
+                        <i class="fa fa-file-signature me-2"></i> All RFQs
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('rfqs.create') }}" class="nav-link {{ request()->routeIs('rfqs.create') ? 'active' : '' }}">
+                        <i class="fa fa-file-circle-plus me-2"></i> Create RFQ
                     </a>
                 </li>
                 <li>

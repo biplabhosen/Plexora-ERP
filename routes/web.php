@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\RfqController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
@@ -43,6 +45,11 @@ Route::resource('orders', OrderController::class)
     ->only(['index', 'create', 'store', 'show'])
     ->middleware('auth');
 
+Route::middleware('auth')->group(function () {
+    Route::resource('rfqs', RfqController::class)
+        ->only(['index', 'create', 'store', 'show']);
+});
+
 // Admin supplier approval routes
 Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/suppliers', [SupplierApprovalController::class, 'index'])->name('admin.suppliers.index');
@@ -53,6 +60,10 @@ Route::middleware(['auth', 'role:admin'])->group(function () {
     Route::get('/admin/users/{user}/edit', [AdminUserController::class, 'edit'])->name('admin.users.edit');
     Route::patch('/admin/users/{user}', [AdminUserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [AdminUserController::class, 'destroy'])->name('admin.users.destroy');
+
+    Route::get('/automation/logs', [AutomationRuleController::class, 'logs'])->name('automation.logs');
+    Route::resource('automation', AutomationRuleController::class)
+        ->except(['show']);
 });
 
 require __DIR__.'/auth.php';
