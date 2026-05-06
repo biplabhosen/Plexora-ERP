@@ -216,8 +216,8 @@ DB_PASSWORD=
 php artisan migrate --force
 php artisan db:seed
 
-# Start queue worker (for automation)
-php artisan queue:work --queue=automation
+# Run scheduler locally (processes scheduled tasks and shared-hosting queue drain)
+php artisan schedule:work
 
 # Start development server
 php artisan serve
@@ -235,7 +235,7 @@ php artisan view:cache
 php artisan migrate --force
 
 # Queue worker as systemd service or supervisor
-php artisan queue:work --queue=automation --timeout=60
+php artisan queue:work --queue=default,automation,campaigns,support --timeout=120
 ```
 
 ## Configuration
@@ -321,8 +321,24 @@ ln -s /etc/nginx/sites-available/plexora /etc/nginx/sites-enabled/
 nginx -t && systemctl restart nginx
 
 # Setup queue worker
-php artisan queue:work --queue=automation --timeout=60
+php artisan queue:work --queue=default,automation,campaigns,support --timeout=120
 ```
+
+### Shared Hosting / cPanel Deployment
+
+If your hosting does not give you SSH or a persistent process manager, do not try to keep `queue:work` running manually. This project now drains all queues from Laravel Scheduler, so you only need one cron job in cPanel:
+
+```cron
+* * * * * /usr/local/bin/php /home/USERNAME/public_html/artisan schedule:run >> /dev/null 2>&1
+```
+
+What this single cron handles:
+
+- Runs all scheduled tasks in `routes/console.php`
+- Processes queued jobs from `default,automation,campaigns,support`
+- Executes due campaign automation and cleanup jobs
+
+Replace the paths with your actual PHP binary and project path. Common shared-hosting PHP paths are `/usr/local/bin/php`, `/opt/cpanel/ea-php82/root/usr/bin/php`, or the path shown by your hosting panel.
 
 3. **Nginx Configuration:**
 ```nginx
@@ -439,7 +455,7 @@ Laravel logs are stored at `storage/logs/laravel.log`.
 php artisan queue:table
 
 # Monitor jobs
-php artisan queue:work --queue=automation
+php artisan queue:work --queue=default,automation,campaigns,support
 ```
 
 ### Common Commands
