@@ -34,12 +34,12 @@ class AppServiceProvider extends ServiceProvider
     {
         Blade::if('moduleEnabled', fn (string $key): bool => app(ModuleService::class)->enabled($key));
 
-        Event::listen(UserRegistered::class, CreateCustomerFromUser::class);
-        Event::listen(OrderPlaced::class, EnsureCustomerExists::class);
-        Event::listen(OrderPlaced::class, RunAutomationRules::class);
-        Event::listen(OrderConfirmed::class, RunSupportAutomation::class);
-        Event::listen(RfqCreated::class, RunAutomationRules::class);
-        Event::listen(StockLow::class, RunAutomationRules::class);
-        Event::listen(SupportTicketCreated::class, RunSupportAutomation::class);
+        // Event::listen(UserRegistered::class, CreateCustomerFromUser::class);
+        // Event::listen(OrderPlaced::class, EnsureCustomerExists::class);
+        // Event::listen(OrderPlaced::class, RunAutomationRules::class);
+        // Event::listen(OrderConfirmed::class, RunSupportAutomation::class);
+        // Event::listen(RfqCreated::class, RunAutomationRules::class);
+        // Event::listen(StockLow::class, RunAutomationRules::class);
+        // Event::listen(SupportTicketCreated::class, RunSupportAutomation::class);
     }
 }
