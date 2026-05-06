@@ -9,107 +9,193 @@
         default => route('buyer.dashboard'),
     };
     $dashboardActive = request()->routeIs('dashboard') || request()->routeIs('admin.dashboard') || request()->routeIs('buyer.dashboard') || request()->routeIs('supplier.dashboard');
+
+    $makeItem = static fn (string $label, string $icon, string $route, string $pattern) => [
+        'type' => 'link',
+        'label' => $label,
+        'icon' => $icon,
+        'route' => $route,
+        'active' => request()->routeIs($pattern),
+    ];
+
+    $makeGroup = static fn (string $key, string $label, string $icon, array $items) => [
+        'key' => $key,
+        'label' => $label,
+        'icon' => $icon,
+        'items' => $items,
+        'active' => collect($items)->contains(fn (array $item): bool => $item['active']),
+    ];
+
+    $groups = [];
+
+    if (in_array($normalizedRole, ['admin', 'marketing_manager', 'support_agent'], true)) {
+        $groups[] = $makeGroup('overview', 'Overview', 'fa-gauge-high', [
+            ['type' => 'link', 'label' => 'Dashboard', 'icon' => 'fa-gauge-high', 'route' => $dashboardRoute, 'active' => $dashboardActive],
+        ]);
+
+        if ($user->hasRole('admin')) {
+            $operations = [];
+            if (module_enabled('products')) {
+                $operations[] = $makeItem('Products', 'fa-box', route('products.index'), 'products.*');
+            }
+            if (module_enabled('inventory')) {
+                $operations[] = $makeItem('Inventory', 'fa-warehouse', route('inventory.index'), 'inventory.*');
+            }
+            if (module_enabled('orders')) {
+                $operations[] = $makeItem('Orders', 'fa-shopping-cart', route('orders.index'), 'orders.*');
+            }
+            if (module_enabled('suppliers')) {
+                $operations[] = $makeItem('Suppliers', 'fa-truck', route('admin.suppliers.index'), 'admin.suppliers.*');
+            }
+            if (module_enabled('rfq')) {
+                $operations[] = $makeItem('RFQ', 'fa-file-signature', route('rfqs.index'), 'rfqs.*');
+            }
+            if (module_enabled('workflow')) {
+                $operations[] = $makeItem('Automation', 'fa-bolt', route('automation.index'), 'automation.*');
+            }
+            if ($operations !== []) {
+                $groups[] = $makeGroup('operations', 'Operations', 'fa-layer-group', $operations);
+            }
+
+            $growth = [];
+            if (module_enabled('marketing') || module_enabled('social')) {
+                $growth[] = $makeItem('Campaigns', 'fa-bullhorn', route('campaigns.index'), 'campaigns.*');
+            }
+            if (module_enabled('crm')) {
+                $growth[] = $makeItem('Customers', 'fa-address-book', route('customers.index'), 'customers.*');
+                $growth[] = $makeItem('Leads', 'fa-filter-circle-dollar', route('leads.index'), 'leads.*');
+            }
+            if ($growth !== []) {
+                $groups[] = $makeGroup('growth', 'Growth', 'fa-chart-line', $growth);
+            }
+
+            $system = [
+                $makeItem('Users', 'fa-users', route('admin.users.index'), 'admin.users.*'),
+                $makeItem('Settings', 'fa-gear', route('admin.modules.index'), 'admin.modules.*'),
+            ];
+            $groups[] = $makeGroup('system', 'System', 'fa-sliders', $system);
+        } elseif ($user->hasRole('marketing_manager')) {
+            $marketing = [];
+            if (module_enabled('marketing') || module_enabled('social')) {
+                $marketing[] = $makeItem('Campaigns', 'fa-bullhorn', route('campaigns.index'), 'campaigns.*');
+                $marketing[] = $makeItem('Calendar', 'fa-calendar-days', route('calendar.index'), 'calendar.*');
+            }
+            if ($marketing !== []) {
+                $groups[] = $makeGroup('marketing', 'Marketing', 'fa-wand-magic-sparkles', $marketing);
+            }
+
+            if (module_enabled('crm')) {
+                $groups[] = $makeGroup('crm', 'CRM', 'fa-address-book', [
+                    $makeItem('Customers', 'fa-address-book', route('customers.index'), 'customers.*'),
+                ]);
+            }
+        } elseif ($user->hasRole('support_agent') && module_enabled('support')) {
+            $groups[] = $makeGroup('support', 'Support', 'fa-headset', [
+                $makeItem('Tickets', 'fa-headset', route('support-tickets.index'), 'support-tickets.*'),
+            ]);
+        }
+    } elseif ($user?->hasRole('supplier')) {
+        $groups[] = $makeGroup('overview', 'Overview', 'fa-gauge-high', [
+            ['type' => 'link', 'label' => 'Dashboard', 'icon' => 'fa-gauge-high', 'route' => $dashboardRoute, 'active' => $dashboardActive],
+        ]);
+
+        $catalog = [];
+        if (module_enabled('products')) {
+            $catalog[] = $makeItem('Products', 'fa-box', route('products.index'), 'products.*');
+        }
+        if (module_enabled('inventory')) {
+            $catalog[] = $makeItem('Inventory', 'fa-warehouse', route('inventory.index'), 'inventory.*');
+        }
+        if ($catalog !== []) {
+            $groups[] = $makeGroup('catalog', 'Catalog', 'fa-boxes-stacked', $catalog);
+        }
+
+        $sales = [];
+        if (module_enabled('orders')) {
+            $sales[] = $makeItem('Orders', 'fa-shopping-cart', route('orders.index'), 'orders.*');
+        }
+        if (module_enabled('rfq')) {
+            $sales[] = $makeItem('RFQs', 'fa-file-signature', route('rfqs.index'), 'rfqs.*');
+        }
+        if ($sales !== []) {
+            $groups[] = $makeGroup('sales', 'Sales', 'fa-chart-column', $sales);
+        }
+
+        $account = [];
+        if (module_enabled('support')) {
+            $account[] = $makeItem('Tickets', 'fa-headset', route('support-tickets.index'), 'support-tickets.*');
+        }
+        $account[] = $makeItem('Profile', 'fa-user', route('profile.edit'), 'profile.edit');
+        $groups[] = $makeGroup('account', 'Account', 'fa-user-gear', $account);
+    } else {
+        $groups[] = $makeGroup('overview', 'Overview', 'fa-gauge-high', [
+            ['type' => 'link', 'label' => 'Dashboard', 'icon' => 'fa-gauge-high', 'route' => $dashboardRoute, 'active' => $dashboardActive],
+        ]);
+
+        $purchasing = [
+            $makeItem('Profile', 'fa-user', route('profile.edit'), 'profile.edit'),
+        ];
+        if (module_enabled('orders')) {
+            $purchasing[] = $makeItem('My Orders', 'fa-shopping-cart', route('orders.index'), 'orders.*');
+        }
+        if (module_enabled('rfq')) {
+            $purchasing[] = $makeItem('All RFQs', 'fa-file-signature', route('rfqs.index'), 'rfqs.*');
+            $purchasing[] = $makeItem('Create RFQ', 'fa-file-circle-plus', route('rfqs.create'), 'rfqs.create');
+        }
+        if (module_enabled('suppliers')) {
+            $supplierLabel = $supplierStatus === 'rejected' ? 'Reapply as Supplier' : 'Become a Supplier';
+            $purchasing[] = ['type' => 'link', 'label' => $supplierLabel, 'icon' => 'fa-truck', 'route' => route('become-supplier'), 'active' => request()->routeIs('become-supplier')];
+        }
+        $groups[] = $makeGroup('purchasing', 'Purchasing', 'fa-basket-shopping', $purchasing);
+
+        if (module_enabled('support')) {
+            $groups[] = $makeGroup('support', 'Support', 'fa-headset', [
+                $makeItem('Tickets', 'fa-headset', route('support-tickets.index'), 'support-tickets.*'),
+            ]);
+        }
+    }
 @endphp
 
 <div class="sidebar p-3" id="sidebar">
-    <h4 class="text-white mb-4">Plexora ERP</h4>
+    <a href="{{ $dashboardRoute }}" class="sidebar-brand text-decoration-none">
+        <img src="{{ asset('images/plexora-logo.png') }}" alt="Plexora ERP Logo" class="sidebar-brand-logo">
+        <div class="sidebar-brand-copy">
+            <span class="sidebar-brand-title">Plexora ERP</span>
+            <span class="sidebar-brand-subtitle">Business Control Hub</span>
+        </div>
+    </a>
 
     @auth
-        <ul class="nav flex-column gap-2">
-            @if (in_array($normalizedRole, ['admin', 'marketing_manager', 'support_agent'], true))
-                <li>
-                    <a href="{{ $dashboardRoute }}" class="nav-link {{ $dashboardActive ? 'active' : '' }}">
-                        <i class="fa fa-gauge-high me-2"></i> Dashboard
-                    </a>
-                </li>
+        <div class="sidebar-nav">
+            @foreach ($groups as $group)
+                <div class="sidebar-group">
+                    <button
+                        class="sidebar-group-toggle {{ $group['active'] ? '' : 'collapsed' }}"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#sidebar-group-{{ $group['key'] }}"
+                        aria-expanded="{{ $group['active'] ? 'true' : 'false' }}"
+                        aria-controls="sidebar-group-{{ $group['key'] }}"
+                    >
+                        <span class="sidebar-group-label">
+                            <i class="fa {{ $group['icon'] }} me-2"></i>{{ $group['label'] }}
+                        </span>
+                        <i class="fa fa-chevron-down sidebar-group-arrow"></i>
+                    </button>
 
-                @if ($user->hasRole('admin'))
-                    @if (module_enabled('products'))
-                        <li><a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"><i class="fa fa-box me-2"></i> Products</a></li>
-                    @endif
-                    @if (module_enabled('inventory'))
-                        <li><a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}"><i class="fa fa-warehouse me-2"></i> Inventory</a></li>
-                    @endif
-                    @if (module_enabled('orders'))
-                        <li><a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}"><i class="fa fa-shopping-cart me-2"></i> Orders</a></li>
-                    @endif
-                    @if (module_enabled('suppliers'))
-                        <li><a href="{{ route('admin.suppliers.index') }}" class="nav-link {{ request()->routeIs('admin.suppliers.*') ? 'active' : '' }}"><i class="fa fa-truck me-2"></i> Suppliers</a></li>
-                    @endif
-                    @if (module_enabled('rfq'))
-                        <li><a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}"><i class="fa fa-file-signature me-2"></i> RFQ</a></li>
-                    @endif
-                    @if (module_enabled('workflow'))
-                        <li><a href="{{ route('automation.index') }}" class="nav-link {{ request()->routeIs('automation.*') ? 'active' : '' }}"><i class="fa fa-bolt me-2"></i> Automation</a></li>
-                    @endif
-                    @if (module_enabled('marketing') || module_enabled('social'))
-                        <li><a href="{{ route('campaigns.index') }}" class="nav-link {{ request()->routeIs('campaigns.*') ? 'active' : '' }}"><i class="fa fa-bullhorn me-2"></i> Campaigns</a></li>
-                    @endif
-                    <li><a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}"><i class="fa fa-users me-2"></i> Users</a></li>
-                    @if (module_enabled('crm'))
-                        <li><a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fa fa-address-book me-2"></i> Customers</a></li>
-                        <li><a href="{{ route('leads.index') }}" class="nav-link {{ request()->routeIs('leads.*') ? 'active' : '' }}"><i class="fa fa-filter-circle-dollar me-2"></i> Leads</a></li>
-                    @endif
-                    <li><a href="{{ route('admin.modules.index') }}" class="nav-link {{ request()->routeIs('admin.modules.*') ? 'active' : '' }}"><i class="fa fa-gear me-2"></i> Settings</a></li>
-                @elseif ($user->hasRole('marketing_manager'))
-                    @if (module_enabled('marketing') || module_enabled('social'))
-                        <li><a href="{{ route('campaigns.index') }}" class="nav-link {{ request()->routeIs('campaigns.*') ? 'active' : '' }}"><i class="fa fa-bullhorn me-2"></i> Campaigns</a></li>
-                        <li><a href="{{ route('calendar.index') }}" class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}"><i class="fa fa-calendar-days me-2"></i> Calendar</a></li>
-                    @endif
-                    @if (module_enabled('crm'))
-                        <li><a href="{{ route('customers.index') }}" class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}"><i class="fa fa-address-book me-2"></i> Customers</a></li>
-                    @endif
-                @elseif ($user->hasRole('support_agent'))
-                    @if (module_enabled('support'))
-                        <li><a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}"><i class="fa fa-headset me-2"></i> Tickets</a></li>
-                    @endif
-                @endif
-            @elseif ($user->hasRole('supplier'))
-                <li><a href="{{ $dashboardRoute }}" class="nav-link {{ $dashboardActive ? 'active' : '' }}"><i class="fa fa-gauge-high me-2"></i> Dashboard</a></li>
-                @if (module_enabled('products'))
-                    <li><a href="{{ route('products.index') }}" class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}"><i class="fa fa-box me-2"></i> Products</a></li>
-                @endif
-                @if (module_enabled('inventory'))
-                    <li><a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}"><i class="fa fa-warehouse me-2"></i> Inventory</a></li>
-                @endif
-                @if (module_enabled('orders'))
-                    <li><a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}"><i class="fa fa-shopping-cart me-2"></i> Orders</a></li>
-                @endif
-                @if (module_enabled('rfq'))
-                    <li><a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}"><i class="fa fa-file-signature me-2"></i> RFQs</a></li>
-                @endif
-                @if (module_enabled('support'))
-                    <li><a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}"><i class="fa fa-headset me-2"></i> Tickets</a></li>
-                @endif
-                <li><a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}"><i class="fa fa-user me-2"></i> Profile</a></li>
-            @else
-                <li><a href="{{ $dashboardRoute }}" class="nav-link {{ $dashboardActive ? 'active' : '' }}"><i class="fa fa-gauge-high me-2"></i> Dashboard</a></li>
-                <li><a href="{{ route('profile.edit') }}" class="nav-link {{ request()->routeIs('profile.edit') ? 'active' : '' }}"><i class="fa fa-user me-2"></i> Profile</a></li>
-                @if (module_enabled('orders'))
-                    <li><a href="{{ route('orders.index') }}" class="nav-link {{ request()->routeIs('orders.*') ? 'active' : '' }}"><i class="fa fa-shopping-cart me-2"></i> My Orders</a></li>
-                @endif
-                @if (module_enabled('support'))
-                    <li><a href="{{ route('support-tickets.index') }}" class="nav-link {{ request()->routeIs('support-tickets.*') ? 'active' : '' }}"><i class="fa fa-headset me-2"></i> Tickets</a></li>
-                @endif
-                @if (module_enabled('rfq'))
-                    <li><a href="{{ route('rfqs.index') }}" class="nav-link {{ request()->routeIs('rfqs.*') ? 'active' : '' }}"><i class="fa fa-file-signature me-2"></i> All RFQs</a></li>
-                    <li><a href="{{ route('rfqs.create') }}" class="nav-link {{ request()->routeIs('rfqs.create') ? 'active' : '' }}"><i class="fa fa-file-circle-plus me-2"></i> Create RFQ</a></li>
-                @endif
-                @if (module_enabled('suppliers'))
-                    <li>
-                        <a href="{{ route('become-supplier') }}" class="nav-link {{ request()->routeIs('become-supplier') ? 'active' : '' }}">
-                            <i class="fa fa-truck me-2"></i>
-                            @if ($supplierStatus === 'pending')
-                                Become a Supplier
-                            @elseif ($supplierStatus === 'rejected')
-                                Reapply as Supplier
-                            @else
-                                Become a Supplier
-                            @endif
-                        </a>
-                    </li>
-                @endif
-            @endif
-        </ul>
+                    <div class="collapse {{ $group['active'] ? 'show' : '' }}" id="sidebar-group-{{ $group['key'] }}">
+                        <ul class="nav flex-column sidebar-subnav">
+                            @foreach ($group['items'] as $item)
+                                <li>
+                                    <a href="{{ $item['route'] }}" class="nav-link {{ $item['active'] ? 'active' : '' }}">
+                                        <i class="fa {{ $item['icon'] }} me-2"></i>{{ $item['label'] }}
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            @endforeach
+        </div>
     @endauth
 </div>

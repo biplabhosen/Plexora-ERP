@@ -34,7 +34,10 @@
 
         .sidebar {
             width: 260px;
-            min-height: 100vh;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
             transition: margin-left 0.3s ease, transform 0.3s ease;
             background: #111827;
             color: #fff;
@@ -45,15 +48,102 @@
             margin-left: -260px;
         }
 
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.65rem 0.5rem 1rem;
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+        }
+
+        .sidebar-brand-logo {
+            width: 44px;
+            height: 44px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand-copy {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .sidebar-brand-title {
+            color: #f8fafc;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .sidebar-brand-subtitle {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            letter-spacing: 0.04em;
+        }
+
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .sidebar-group-toggle {
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.65rem 0.75rem;
+            border-radius: 0.8rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .sidebar-group-toggle:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+        }
+
+        .sidebar-group-label {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .sidebar-group-arrow {
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .sidebar-group-toggle:not(.collapsed) .sidebar-group-arrow {
+            transform: rotate(180deg);
+        }
+
+        .sidebar-subnav {
+            gap: 0.35rem;
+            padding-top: 0.45rem;
+            padding-left: 0.6rem;
+        }
+
         .sidebar .nav-link {
             color: #cbd5e1;
-            border-radius: 6px;
+            border-radius: 0.75rem;
+            padding: 0.72rem 0.95rem;
         }
 
         .sidebar .nav-link:hover,
         .sidebar .nav-link.active {
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
+        }
+
+        .card {
+            border-radius: 1rem;
+            box-shadow: 0 1rem 2.5rem rgba(15, 23, 42, 0.08);
         }
 
         .main-content {
@@ -100,6 +190,7 @@
                 position: fixed;
                 top: 0;
                 left: 0;
+                height: 100vh;
                 transform: translateX(-100%);
                 z-index: 1040;
                 margin-left: 0;

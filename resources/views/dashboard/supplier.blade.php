@@ -108,17 +108,18 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Order</th><th>Status</th><th>Date</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Order</th><th>Status</th><th>Date</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['recentOrders'] as $order)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ $order->order_number }}</td>
                                             <td><span class="badge text-bg-secondary">{{ ucfirst($order->status) }}</span></td>
                                             <td>{{ $order->created_at?->format('M d, Y') }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="3" class="text-center text-muted py-4">No orders found.</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-4">No orders found.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -140,17 +141,18 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Title</th><th>Status</th><th>Buyer</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Title</th><th>Status</th><th>Buyer</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['assignedRfqs'] as $rfq)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($rfq->title, 28) }}</td>
                                             <td><span class="badge text-bg-primary">{{ ucfirst($rfq->status) }}</span></td>
                                             <td>{{ $rfq->buyer?->name ?? 'Unknown' }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="3" class="text-center text-muted py-4">No RFQs assigned.</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-4">No RFQs assigned.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -172,16 +174,17 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Product</th><th>Stock</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Product</th><th>Stock</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['lowStockProducts'] as $product)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($product->name, 24) }}</td>
                                             <td><span class="badge text-bg-danger">{{ $product->stock }}</span></td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="2" class="text-center text-muted py-4">No low stock products.</td></tr>
+                                        <tr><td colspan="3" class="text-center text-muted py-4">No low stock products.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
