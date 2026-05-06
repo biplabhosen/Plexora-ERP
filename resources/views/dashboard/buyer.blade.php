@@ -105,18 +105,19 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Order</th><th>Status</th><th>Total</th><th>Date</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Order</th><th>Status</th><th>Total</th><th>Date</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['recentOrders'] as $order)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ $order->order_number }}</td>
                                             <td><span class="badge text-bg-secondary">{{ ucfirst($order->status) }}</span></td>
                                             <td>${{ number_format((float) $order->grand_total, 2) }}</td>
                                             <td>{{ $order->created_at?->format('M d, Y') }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="4" class="text-center text-muted py-4">No orders yet.</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4">No orders yet.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -138,17 +139,18 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Title</th><th>Status</th><th>Supplier</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Title</th><th>Status</th><th>Supplier</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['recentRfqs'] as $rfq)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($rfq->title, 28) }}</td>
                                             <td><span class="badge text-bg-primary">{{ ucfirst($rfq->status) }}</span></td>
                                             <td>{{ $rfq->supplier?->company_name ?? 'Unassigned' }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="3" class="text-center text-muted py-4">No RFQs yet.</td></tr>
+                                        <tr><td colspan="4" class="text-center text-muted py-4">No RFQs yet.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -170,16 +172,17 @@
                         <div class="table-responsive">
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
-                                    <tr><th>Subject</th><th>Status</th></tr>
+                                    <tr><th class="text-center" style="width: 56px;">#</th><th>Subject</th><th>Status</th></tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($metrics['recentTickets'] as $ticket)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($ticket->subject, 24) }}</td>
                                             <td><span class="badge text-bg-warning">{{ ucfirst($ticket->status) }}</span></td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="2" class="text-center text-muted py-4">No tickets yet.</td></tr>
+                                        <tr><td colspan="3" class="text-center text-muted py-4">No tickets yet.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>

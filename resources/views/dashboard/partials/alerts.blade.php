@@ -30,7 +30,7 @@
 
 <div class="row g-4">
     <div class="col-12 col-xl-4">
-        <div class="card h-100">
+        <div class="card h-100 px-3">
             <div class="card-header bg-body border-0 py-3">
                 <h2 class="h5 mb-1">Alerts</h2>
                 <p class="text-muted small mb-0">Operational exceptions that need admin attention.</p>
@@ -70,7 +70,7 @@
     </div>
 
     <div class="col-12 col-xl-8">
-        <div class="card h-100">
+        <div class="card h-100 px-3">
             <div class="card-header bg-body border-0 py-3 d-flex align-items-center justify-content-between">
                 <div>
                     <h2 class="h5 mb-1">Workflow Activity</h2>

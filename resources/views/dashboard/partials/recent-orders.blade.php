@@ -7,7 +7,7 @@
     ];
 @endphp
 
-<div class="card h-100">
+<div class="card h-100 px-3">
     <div class="card-header bg-body border-0 py-3 d-flex align-items-center justify-content-between">
         <div>
             <h2 class="h5 mb-1">Recent Orders</h2>
@@ -20,6 +20,7 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
+                    <th class="text-center" style="width: 56px;">#</th>
                     <th>Order No</th>
                     <th>Customer</th>
                     <th class="text-end">Total</th>
@@ -30,6 +31,7 @@
             <tbody>
                 @forelse ($recentOrders as $order)
                     <tr>
+                        <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                         <td class="fw-semibold">{{ $order->order_number }}</td>
                         <td>{{ $order->customer?->name ?? 'Guest Customer' }}</td>
                         <td class="text-end fw-semibold">${{ number_format((float) $order->grand_total, 2) }}</td>
@@ -42,7 +44,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5" class="text-center text-muted py-5">No recent orders found.</td>
+                        <td colspan="6" class="text-center text-muted py-5">No recent orders found.</td>
                     </tr>
                 @endforelse
             </tbody>

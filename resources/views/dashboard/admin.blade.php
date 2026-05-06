@@ -57,6 +57,7 @@
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
+                                        <th class="text-center" style="width: 56px;">#</th>
                                         <th>Name</th>
                                         <th>Role</th>
                                         <th>Status</th>
@@ -66,13 +67,14 @@
                                 <tbody>
                                     @forelse ($metrics['recentUsers'] as $user)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ $user->name }}</td>
                                             <td>{{ $user->role?->label ?? str($user->role?->name ?? 'Unassigned')->headline() }}</td>
                                             <td><span class="badge {{ $user->status === 'active' ? 'text-bg-success' : 'text-bg-danger' }}">{{ ucfirst($user->status) }}</span></td>
                                             <td>{{ $user->created_at?->format('M d, Y') }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="4" class="text-center text-muted py-4">No recent users found.</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4">No recent users found.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
@@ -96,6 +98,7 @@
                             <table class="table align-middle mb-0">
                                 <thead class="table-light">
                                     <tr>
+                                        <th class="text-center" style="width: 56px;">#</th>
                                         <th>Subject</th>
                                         <th>Status</th>
                                         <th>Priority</th>
@@ -105,13 +108,14 @@
                                 <tbody>
                                     @forelse ($metrics['recentTickets'] as $ticket)
                                         <tr>
+                                            <td class="text-center text-muted fw-semibold">{{ $loop->iteration }}</td>
                                             <td class="fw-semibold">{{ \Illuminate\Support\Str::limit($ticket->subject, 38) }}</td>
                                             <td><span class="badge {{ $ticket->status === 'open' ? 'text-bg-warning' : ($ticket->status === 'resolved' ? 'text-bg-success' : 'text-bg-secondary') }}">{{ ucfirst($ticket->status) }}</span></td>
                                             <td>{{ ucfirst($ticket->priority) }}</td>
                                             <td>{{ $ticket->created_at?->format('M d, Y') }}</td>
                                         </tr>
                                     @empty
-                                        <tr><td colspan="4" class="text-center text-muted py-4">No recent tickets found.</td></tr>
+                                        <tr><td colspan="5" class="text-center text-muted py-4">No recent tickets found.</td></tr>
                                     @endforelse
                                 </tbody>
                             </table>
