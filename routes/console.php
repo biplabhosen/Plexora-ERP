@@ -31,6 +31,20 @@ Schedule::job(new RunScheduledCampaignJob())
     ->name('campaigns:run-scheduled')
     ->withoutOverlapping();
 
+// Shared hosting usually cannot keep a long-running queue worker alive.
+// This scheduled worker drains pending jobs each minute and then exits.
+Schedule::command('queue:work', [
+    '--queue' => 'default,automation,campaigns,support',
+    '--stop-when-empty' => true,
+    '--tries' => 3,
+    '--timeout' => 120,
+    '--sleep' => 1,
+    '--max-time' => 50,
+])
+    ->everyMinute()
+    ->name('queues:drain-shared-hosting')
+    ->withoutOverlapping();
+
 Schedule::call(function (): void {
     WorkflowLog::query()
         ->where('created_at', '<', now()->subDays(30))

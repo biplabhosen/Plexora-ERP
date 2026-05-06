@@ -168,7 +168,7 @@ nano /etc/supervisor/conf.d/plexora-queue.conf
 ```ini
 [program:plexora-queue]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/plexora-erp/artisan queue:work database --queue=automation --timeout=60 --sleep=3
+command=php /var/www/plexora-erp/artisan queue:work database --queue=default,automation,campaigns,support --timeout=120 --sleep=3
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -245,21 +245,21 @@ php artisan db:seed
 php artisan storage:link
 ```
 
-#### 5. Setup Queue Worker
+#### 5. Setup Cron Jobs
 
 Create a cron job in cPanel:
 
 ```
-* * * * * /usr/local/bin/php /home/username/public_html/artisan schedule:run
+* * * * * /usr/local/bin/php /home/username/public_html/artisan schedule:run >> /dev/null 2>&1
 ```
 
-For queue worker, create a shell script and use **Cron Jobs**:
+This single cron job is enough on shared hosting. The application scheduler will:
 
-```bash
-#!/bin/bash
-cd /home/username/public_html
-php artisan queue:work database --queue=automation --timeout=60
-```
+- run all Laravel scheduled tasks
+- process queued jobs from `default,automation,campaigns,support`
+- handle campaign dispatch, support automation, and cleanup jobs
+
+You do not need a separate forever-running `php artisan queue:work` command on cPanel/shared hosting.
 
 ### Option 3: Docker Deployment
 
@@ -318,7 +318,7 @@ services:
     environment:
       - APP_ENV=production
       - QUEUE_CONNECTION=database
-    command: php artisan queue:work database --queue=automation
+    command: php artisan queue:work database --queue=default,automation,campaigns,support
     depends_on:
       - db
 

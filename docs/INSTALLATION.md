@@ -44,8 +44,8 @@ php artisan migrate --force
 # Seed database
 php artisan db:seed
 
-# Start queue worker (in background)
-php artisan queue:work --queue=automation --timeout=60 &
+# Run scheduler locally
+php artisan schedule:work
 
 # Start development server
 php artisan serve --host=0.0.0.0 --port=8000
@@ -221,7 +221,7 @@ chown -R www-data:www-data storage bootstrap/cache
 #### Option A: Run Manually (Development)
 
 ```bash
-php artisan queue:work --queue=automation
+php artisan queue:work --queue=default,automation,campaigns,support
 ```
 
 #### Option B: Supervisor (Production)
@@ -231,7 +231,7 @@ Create `/etc/supervisor/conf.d/plexora-queue.conf`:
 ```ini
 [program:plexora-queue]
 process_name=%(program_name)s_%(process_num)02d
-command=php /var/www/plexora-erp/artisan queue:work database --queue=automation --timeout=60 --sleep=3
+command=php /var/www/plexora-erp/artisan queue:work database --queue=default,automation,campaigns,support --timeout=120 --sleep=3
 autostart=true
 autorestart=true
 stopasgroup=true
@@ -258,6 +258,8 @@ Add to crontab (`sudo crontab -e`):
 ```cron
 * * * * * php /var/www/plexora-erp/artisan schedule:run >> /dev/null 2>&1
 ```
+
+For shared hosting/cPanel, this same cron entry is enough for both scheduled tasks and queued jobs. The scheduler is configured to drain `default,automation,campaigns,support` every minute with a short-lived worker, so you do not need a separate always-on `queue:work` process.
 
 ### Step 9: Nginx Configuration
 
@@ -401,7 +403,7 @@ php artisan queue:table
 
 # Restart worker
 php artisan queue:restart
-php artisan queue:work --queue=automation
+php artisan queue:work --queue=default,automation,campaigns,support
 ```
 
 ### Mail Not Sending
